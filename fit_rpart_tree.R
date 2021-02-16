@@ -30,11 +30,18 @@ security_sm <- relationships(
 
 security <- read.csv(file = "Security4.csv")
 
-deviance_tree <- fit_rpart_tree_seminr(mm = security_mm, 
-                                sm = security_sm, 
-                                data = security,
-                                focal_construct = "Y_TRUST",
-                                cp = 0.01)
+# Estimating the full model
+sec_model <- estimate_pls(data = security,
+                          measurement_model = security_mm,
+                          structural_model = security_sm)
+
+# Running COA framework
+deviance_tree <- fit_rpart_tree_seminr(pls_model=sec_model,
+                                       focal_construct = "Y_TRUST",
+                                       cp = 0.01)
+
+# Quick test code
+# source("fit_tree_library.R"); deviance_tree <- fit_rpart_tree_seminr(pls_model=sec_model, focal_construct = "Y_TRUST", cp = 0.01)
 
 deviants <- (deviance_tree$PD)[(deviance_tree$PD > quantile(deviance_tree$PD, probs = c(0.95))) | (deviance_tree$PD < quantile(deviance_tree$PD, probs = c(0.05)))]
 fancyRpartPlot(deviance_tree$tree, caption = NULL)

@@ -234,7 +234,6 @@ in_and_out_sample_predictions <- function(x, folds, ordered_data, model,techniqu
 }
 
 predict_pls2 <- function(model, technique = predict_DA, noFolds = NULL, cores = NULL) {
-  
   stopifnot(inherits(model, "seminr_model"))
   
   # shuffle data
@@ -243,24 +242,29 @@ predict_pls2 <- function(model, technique = predict_DA, noFolds = NULL, cores = 
   
   # collect in-sample and out-sample prediction matrices and sort everything to original row indexes
   pred_matrices <- prediction_matrices( noFolds, ordered_data, model,technique, cores)
-  PLS_predicted_outsample_construct <- pred_matrices$out_of_sample_construct[as.character(c(1:nrow(model$data))),]
-  PLS_predicted_insample_construct <- pred_matrices$in_sample_construct[as.character(c(1:nrow(model$data))),]
-  PLS_predicted_outsample_item <- pred_matrices$out_of_sample_item[as.character(c(1:nrow(model$data))),]
-  PLS_predicted_insample_item <- pred_matrices$in_sample_item[as.character(c(1:nrow(model$data))),]
-  LM_predicted_outsample_item <- pred_matrices$out_of_sample_lm_item[as.character(c(1:nrow(model$data))),]
-  LM_predicted_insample_item <- pred_matrices$in_sample_lm_item[as.character(c(1:nrow(model$data))),]
+  data_indexes <- as.character(c(1:nrow(model$data)))
+  
+  PLS_predicted_outsample_construct <- pred_matrices$out_of_sample_construct[data_indexes,]
+  PLS_predicted_insample_construct  <- pred_matrices$in_sample_construct[data_indexes,]
+  PLS_predicted_outsample_item      <- pred_matrices$out_of_sample_item[data_indexes,]
+  PLS_predicted_insample_item       <- pred_matrices$in_sample_item[data_indexes,]
+  LM_predicted_outsample_item       <- pred_matrices$out_of_sample_lm_item[data_indexes,]
+  LM_predicted_insample_item        <- pred_matrices$in_sample_lm_item[data_indexes,]
   
   # Allocate results
-  results <- list(composites = list(composite_out_of_sample = PLS_predicted_outsample_construct,
-                                    composite_in_sample = PLS_predicted_insample_construct,
-                                    actuals_star = model$construct_scores[as.character(c(1:nrow(model$data))),]),
-                  items = list(item_out_of_sample = PLS_predicted_outsample_item,
-                               item_in_sample = PLS_predicted_insample_item,
-                               lm_out_of_sample = LM_predicted_outsample_item,
-                               lm_in_sample = LM_predicted_insample_item,
-                               item_actuals = ordered_data[as.character(c(1:nrow(model$data))),],
-                               lm_in_sample_residuals = pred_matrices$lm_in_sample_item_residuals[as.character(c(1:nrow(model$data))),],
-                               pls_in_sample_residuals = pred_matrices$pls_in_sample_item_residuals[as.character(c(1:nrow(model$data))),]))
+  results <- list(
+    composites = list(
+      composite_out_of_sample = PLS_predicted_outsample_construct,
+      composite_in_sample = PLS_predicted_insample_construct,
+      actuals_star = model$construct_scores[data_indexes,]),
+    items = list(
+      item_out_of_sample = PLS_predicted_outsample_item,
+      item_in_sample = PLS_predicted_insample_item,
+      lm_out_of_sample = LM_predicted_outsample_item,
+      lm_in_sample = LM_predicted_insample_item,
+      item_actuals = ordered_data[data_indexes,],
+      lm_in_sample_residuals = pred_matrices$lm_in_sample_item_residuals[data_indexes,],
+      pls_in_sample_residuals = pred_matrices$pls_in_sample_item_residuals[data_indexes,]))
   class(results) <- "pls_prediction_kfold"
   return(results)
 }
@@ -335,22 +339,14 @@ mean_rows <- function(x, matrix, noFolds, constructs) {
   return(rowSums(matrix[,(0:(noFolds-1)*length(constructs))+x])/(noFolds-1))
 }
 
-fit_rpart_tree_seminr <- function(mm, sm, data, focal_construct, cp = 0.01) {
-  # Estimating the full model
-  pls_model <- estimate_pls(data = data,
-                            measurement_model = mm,
-                            structural_model = sm)
-  
-  # boot_model <- bootstrap_model(pls_model, nboot = 1000)
-  # sum_boot_model <- summary(boot_model)
-  
-  # sum_boot_model$bootstrapped_paths
-  
+fit_rpart_tree_seminr <- function(pls_model, focal_construct, cp = 0.01) {
   # Run predict_pls
+  cat("Running PLSpredict to get predicted scores\n")
   plspredict_model <- predict_pls2(pls_model,
                                    technique = predict_DA)
   
-  # Collect metrics
+  # Calculate prediction metrics
+  cat("Calculating prediction metrics\n")
   fitted <- plspredict_model$composites$composite_in_sample[,focal_construct]
   predicted <- plspredict_model$composites$composite_out_of_sample[,focal_construct]
   actual_star <- pls_model$construct_scores[,focal_construct]
@@ -359,9 +355,10 @@ fit_rpart_tree_seminr <- function(mm, sm, data, focal_construct, cp = 0.01) {
   overfit_ratio <- (OOS_MSE - IS_MSE)/IS_MSE
   
   PD <- predicted - fitted 
-  
-  
   cs_data <- cbind(as.data.frame(pls_model$construct_scores),PD)
+  
+  # Generate Deviance Tree
+  cat("Generating Deviance Tree\n")
   cstree <- rpart(
     PD ~ ., 
     data = cs_data, 
