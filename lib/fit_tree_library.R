@@ -1,4 +1,4 @@
-
+source("lib_matrix.R")
 
 prediction_matrices <- function(noFolds, ordered_data, model,technique, cores) {
   out <- tryCatch(
@@ -240,31 +240,25 @@ predict_pls2 <- function(model, technique = predict_DA, noFolds = NULL, cores = 
   order <- sample(nrow(model$data),nrow(model$data), replace = FALSE)
   ordered_data <- model$data[order,]
   
-  # collect in-sample and out-sample prediction matrices and sort everything to original row indexes
-  pred_matrices <- prediction_matrices( noFolds, ordered_data, model,technique, cores)
-  data_indexes <- as.character(c(1:nrow(model$data)))
+  # collect in-sample and out-sample prediction matrices
+  predictions <- prediction_matrices( noFolds, ordered_data, model,technique, cores)
   
-  PLS_predicted_outsample_construct <- pred_matrices$out_of_sample_construct[data_indexes,]
-  PLS_predicted_insample_construct  <- pred_matrices$in_sample_construct[data_indexes,]
-  PLS_predicted_outsample_item      <- pred_matrices$out_of_sample_item[data_indexes,]
-  PLS_predicted_insample_item       <- pred_matrices$in_sample_item[data_indexes,]
-  LM_predicted_outsample_item       <- pred_matrices$out_of_sample_lm_item[data_indexes,]
-  LM_predicted_insample_item        <- pred_matrices$in_sample_lm_item[data_indexes,]
+  # Allocate results with everything re-sorted to original row indexes
+  sorted_indexes <- as.character(c(1:nrow(model$data)))
   
-  # Allocate results
   results <- list(
     composites = list(
-      composite_out_of_sample = PLS_predicted_outsample_construct,
-      composite_in_sample = PLS_predicted_insample_construct,
-      actuals_star = model$construct_scores[data_indexes,]),
+      composite_out_of_sample = predictions$out_of_sample_construct[sorted_indexes,],
+      composite_in_sample = predictions$in_sample_construct[sorted_indexes,],
+      actuals_star = model$construct_scores[sorted_indexes,]),
     items = list(
-      item_out_of_sample = PLS_predicted_outsample_item,
-      item_in_sample = PLS_predicted_insample_item,
-      lm_out_of_sample = LM_predicted_outsample_item,
-      lm_in_sample = LM_predicted_insample_item,
-      item_actuals = ordered_data[data_indexes,],
-      lm_in_sample_residuals = pred_matrices$lm_in_sample_item_residuals[data_indexes,],
-      pls_in_sample_residuals = pred_matrices$pls_in_sample_item_residuals[data_indexes,]))
+      item_out_of_sample = predictions$out_of_sample_item[sorted_indexes,],
+      item_in_sample = predictions$in_sample_item[sorted_indexes,],
+      lm_out_of_sample = predictions$out_of_sample_lm_item[sorted_indexes,],
+      lm_in_sample = predictions$in_sample_lm_item[sorted_indexes,],
+      item_actuals = ordered_data[sorted_indexes,],
+      lm_in_sample_residuals = predictions$lm_in_sample_item_residuals[sorted_indexes,],
+      pls_in_sample_residuals = predictions$pls_in_sample_item_residuals[sorted_indexes,]))
   class(results) <- "pls_prediction_kfold"
   return(results)
 }
@@ -319,26 +313,6 @@ predict_seminr_model <- function(object, testData, technique = predict_DA, na.pr
   return(predictResults)
 }
 
-# Function to standardize a matrix by sd vector and mean vector
-standardize_data <- function(data_matrix,means_vector,sd_vector) {
-  return(t(t(sweep(data_matrix,2,means_vector)) / sd_vector))
-}
-
-# Function to un-standardize a matrix by sd vector and mean vector
-unstandardize_data <- function(data_matrix,means_vector,sd_vector) {
-  return(sweep((data_matrix %*% diag(sd_vector)),2,means_vector,"+"))
-}
-
-# Function to sum rows of a matrix
-sum_rows <- function(x, matrix, noFolds, constructs) {
-  return(rowSums(matrix[,(0:(noFolds-1)*length(constructs))+x]))
-}
-
-# Function to mean rows of a matrix
-mean_rows <- function(x, matrix, noFolds, constructs) {
-  return(rowSums(matrix[,(0:(noFolds-1)*length(constructs))+x])/(noFolds-1))
-}
-
 fit_rpart_tree_seminr <- function(pls_model, focal_construct, cp = 0.01) {
   # Run predict_pls
   cat("Running PLSpredict to get predicted scores\n")
@@ -365,12 +339,14 @@ fit_rpart_tree_seminr <- function(pls_model, focal_construct, cp = 0.01) {
     minsplit = 2, 
     minbucket = 1, cp = 0.01
   )
-  return(list(tree = cstree,
-         plspredict_model = plspredict_model,
-         IS_MSE = IS_MSE,
-         OOS_MSE = OOS_MSE,
-         overfit_ratio = overfit_ratio,
-         fitted_score = fitted,
-         predicted_score = predicted,
-         PD = PD))
+  return(list(
+    tree = cstree,
+    plspredict_model = plspredict_model,
+    IS_MSE = IS_MSE,
+    OOS_MSE = OOS_MSE,
+    overfit_ratio = overfit_ratio,
+    fitted_score = fitted,
+    predicted_score = predicted,
+    PD = PD
+  ))
 }
