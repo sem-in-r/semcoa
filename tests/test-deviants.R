@@ -2,7 +2,6 @@
 library(seminr)
 library(rpart)
 library(rpart.plot)
-library(rattle)
 
 source("lib/fit_tree_library.R", chdir = TRUE)
 
@@ -33,9 +32,8 @@ utaut_model <- estimate_pls(data = utaut_data,
                             structural_model = utaut_sm)
 
 
-deviance_tree <- fit_rpart_tree_seminr(pls_model = utaut_model,
-                                       focal_construct = "BI",
-                                       cp = 0.01)
+deviance_tree <- fit_rpart_tree_seminr(
+  pls_model = utaut_model, focal_construct = "BI")
 
 # Tests
 

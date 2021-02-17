@@ -37,8 +37,7 @@ sec_model <- estimate_pls(data = security,
 
 # Running COA framework
 deviance_tree <- fit_rpart_tree_seminr(pls_model=sec_model,
-                                       focal_construct = "Y_TRUST",
-                                       cp = 0.01)
+                                       focal_construct = "Y_TRUST")
 
 # Quick test code
 # source("fit_tree_library.R"); deviance_tree <- fit_rpart_tree_seminr(pls_model=sec_model, focal_construct = "Y_TRUST", cp = 0.01)
@@ -48,14 +47,7 @@ fancyRpartPlot(deviance_tree$tree, caption = NULL)
 
 
 # Load the project data  ----
-data <- read.csv(file = "correct_utaut_data.csv")
-
-
-structural_model <- relationships(
-  paths(from = c("PE","EE","SI","FC","HM","PV","HAB","Exp","Age","Gender"), to = "BI")
-)
-
-measurement_model <- constructs(
+utaut_mm <- constructs(
   composite("PE", multi_items("PERF", 1:4)),
   composite("EE", c("PEOU1","PEOU3","PEOU5","PEOU6")),
   composite("SI", c(multi_items("NORM", 1:2),"INFL3")),
@@ -69,11 +61,20 @@ measurement_model <- constructs(
   composite("Gender", single_item("gender"))
 )
 
-deviance_tree <- fit_rpart_tree_seminr(mm = measurement_model, 
-                                       sm = structural_model, 
-                                       data = data[,-66],
-                                       focal_construct = "BI",
-                                       cp = 0.01)
+utaut_sm <- relationships(
+  paths(from = c("PE","EE","SI","FC","HM","PV","HAB","Exp","Age","Gender"), to = "BI")
+)
+
+# Estimate model and run deviance trees
+utaut_data <- read.csv(file = "correct_utaut_data.csv")[,-66]
+
+utaut_model <- estimate_pls(data = utaut_data,
+                            measurement_model = utaut_mm,
+                            structural_model = utaut_sm)
+
+
+deviance_tree <- fit_rpart_tree_seminr(pls_model = utaut_model,
+                                       focal_construct = "BI")
 
 deviants <- (deviance_tree$PD)[(deviance_tree$PD > quantile(deviance_tree$PD, probs = c(0.95))) | (deviance_tree$PD < quantile(deviance_tree$PD, probs = c(0.05)))]
 fancyRpartPlot(deviance_tree$tree, caption = NULL)

@@ -313,7 +313,7 @@ predict_seminr_model <- function(object, testData, technique = predict_DA, na.pr
   return(predictResults)
 }
 
-fit_rpart_tree_seminr <- function(pls_model, focal_construct, cp = 0.01) {
+fit_rpart_tree_seminr <- function(pls_model, focal_construct) {
   # Run predict_pls
   cat("Running PLSpredict to get predicted scores\n")
   plspredict_model <- predict_pls2(pls_model,
@@ -336,8 +336,7 @@ fit_rpart_tree_seminr <- function(pls_model, focal_construct, cp = 0.01) {
   cstree <- rpart(
     PD ~ ., 
     data = cs_data, 
-    minsplit = 2, 
-    minbucket = 1, cp = 0.01
+    minsplit = 2
   )
   return(list(
     tree = cstree,
