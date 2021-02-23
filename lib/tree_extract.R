@@ -28,6 +28,13 @@ leaves_from_nodes <- function(parent_ids, node_paths) {
   paths_list
 }
 
+# Returns index of data cases that match nodes in tree frame
+# tree - rpart tree object
+# logical_frame - logical vector of which nodes in tree frame we want (e.g., use a predicate tree function)
+cases <- function(tree, logical_frame) {
+  which(tree$where %in% which(logical_frame))
+}
+
 # OTHER UTILITIES
 #
 # Get splitting criteria of a node
