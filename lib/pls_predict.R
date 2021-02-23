@@ -1,4 +1,4 @@
-
+source("matrix.R", chdir = TRUE)
 
 prediction_matrices <- function(noFolds, ordered_data, model,technique, cores) {
   out <- tryCatch(
@@ -187,8 +187,8 @@ in_and_out_sample_predictions <- function(x, folds, ordered_data, model,techniqu
                                                             structural_model = model$smMatrix,
                                                             inner_weights = model$inner_weights))
   test_predictions <- predict_seminr_model(object = train_model,
-                                     testData = testingData,
-                                     technique = technique)
+                                           testData = testingData,
+                                           technique = technique)
   
   PLS_predicted_outsample_construct[testIndexes,] <-  test_predictions$predicted_composite_scores
   PLS_predicted_outsample_item[testIndexes,] <- test_predictions$predicted_items
@@ -196,8 +196,8 @@ in_and_out_sample_predictions <- function(x, folds, ordered_data, model,techniqu
   
   #PLS prediction on trainset model
   train_predictions <- predict_seminr_model(object = train_model,
-                                      testData = trainingData,
-                                      technique = technique)
+                                            testData = trainingData,
+                                            technique = technique)
   
   PLS_predicted_insample_construct[trainIndexes,] <- train_predictions$predicted_composite_scores
   PLS_predicted_insample_item[trainIndexes,] <- train_predictions$predicted_items
@@ -234,33 +234,31 @@ in_and_out_sample_predictions <- function(x, folds, ordered_data, model,techniqu
 }
 
 predict_pls2 <- function(model, technique = predict_DA, noFolds = NULL, cores = NULL) {
-  
   stopifnot(inherits(model, "seminr_model"))
   
   # shuffle data
   order <- sample(nrow(model$data),nrow(model$data), replace = FALSE)
   ordered_data <- model$data[order,]
   
-  # collect in-sample and out-sample prediction matrices and sort everything to original row indexes
-  pred_matrices <- prediction_matrices( noFolds, ordered_data, model,technique, cores)
-  PLS_predicted_outsample_construct <- pred_matrices$out_of_sample_construct[as.character(c(1:nrow(model$data))),]
-  PLS_predicted_insample_construct <- pred_matrices$in_sample_construct[as.character(c(1:nrow(model$data))),]
-  PLS_predicted_outsample_item <- pred_matrices$out_of_sample_item[as.character(c(1:nrow(model$data))),]
-  PLS_predicted_insample_item <- pred_matrices$in_sample_item[as.character(c(1:nrow(model$data))),]
-  LM_predicted_outsample_item <- pred_matrices$out_of_sample_lm_item[as.character(c(1:nrow(model$data))),]
-  LM_predicted_insample_item <- pred_matrices$in_sample_lm_item[as.character(c(1:nrow(model$data))),]
+  # collect in-sample and out-sample prediction matrices
+  predictions <- prediction_matrices( noFolds, ordered_data, model,technique, cores)
   
-  # Allocate results
-  results <- list(composites = list(composite_out_of_sample = PLS_predicted_outsample_construct,
-                                    composite_in_sample = PLS_predicted_insample_construct,
-                                    actuals_star = model$construct_scores[as.character(c(1:nrow(model$data))),]),
-                  items = list(item_out_of_sample = PLS_predicted_outsample_item,
-                               item_in_sample = PLS_predicted_insample_item,
-                               lm_out_of_sample = LM_predicted_outsample_item,
-                               lm_in_sample = LM_predicted_insample_item,
-                               item_actuals = ordered_data[as.character(c(1:nrow(model$data))),],
-                               lm_in_sample_residuals = pred_matrices$lm_in_sample_item_residuals[as.character(c(1:nrow(model$data))),],
-                               pls_in_sample_residuals = pred_matrices$pls_in_sample_item_residuals[as.character(c(1:nrow(model$data))),]))
+  # Allocate results with everything re-sorted to original row indexes
+  sorted_indexes <- as.character(c(1:nrow(model$data)))
+  
+  results <- list(
+    composites = list(
+      composite_out_of_sample = predictions$out_of_sample_construct[sorted_indexes,],
+      composite_in_sample = predictions$in_sample_construct[sorted_indexes,],
+      actuals_star = model$construct_scores[sorted_indexes,]),
+    items = list(
+      item_out_of_sample = predictions$out_of_sample_item[sorted_indexes,],
+      item_in_sample = predictions$in_sample_item[sorted_indexes,],
+      lm_out_of_sample = predictions$out_of_sample_lm_item[sorted_indexes,],
+      lm_in_sample = predictions$in_sample_lm_item[sorted_indexes,],
+      item_actuals = ordered_data[sorted_indexes,],
+      lm_in_sample_residuals = predictions$lm_in_sample_item_residuals[sorted_indexes,],
+      pls_in_sample_residuals = predictions$pls_in_sample_item_residuals[sorted_indexes,]))
   class(results) <- "pls_prediction_kfold"
   return(results)
 }
@@ -313,67 +311,4 @@ predict_seminr_model <- function(object, testData, technique = predict_DA, na.pr
   
   class(predictResults) <- "PLSprediction"
   return(predictResults)
-}
-
-# Function to standardize a matrix by sd vector and mean vector
-standardize_data <- function(data_matrix,means_vector,sd_vector) {
-  return(t(t(sweep(data_matrix,2,means_vector)) / sd_vector))
-}
-
-# Function to un-standardize a matrix by sd vector and mean vector
-unstandardize_data <- function(data_matrix,means_vector,sd_vector) {
-  return(sweep((data_matrix %*% diag(sd_vector)),2,means_vector,"+"))
-}
-
-# Function to sum rows of a matrix
-sum_rows <- function(x, matrix, noFolds, constructs) {
-  return(rowSums(matrix[,(0:(noFolds-1)*length(constructs))+x]))
-}
-
-# Function to mean rows of a matrix
-mean_rows <- function(x, matrix, noFolds, constructs) {
-  return(rowSums(matrix[,(0:(noFolds-1)*length(constructs))+x])/(noFolds-1))
-}
-
-fit_rpart_tree_seminr <- function(mm, sm, data, focal_construct, cp = 0.01) {
-  # Estimating the full model
-  pls_model <- estimate_pls(data = data,
-                            measurement_model = mm,
-                            structural_model = sm)
-  
-  # boot_model <- bootstrap_model(pls_model, nboot = 1000)
-  # sum_boot_model <- summary(boot_model)
-  
-  # sum_boot_model$bootstrapped_paths
-  
-  # Run predict_pls
-  plspredict_model <- predict_pls2(pls_model,
-                                   technique = predict_DA)
-  
-  # Collect metrics
-  fitted <- plspredict_model$composites$composite_in_sample[,focal_construct]
-  predicted <- plspredict_model$composites$composite_out_of_sample[,focal_construct]
-  actual_star <- pls_model$construct_scores[,focal_construct]
-  IS_MSE <- mean((actual_star - fitted)^2)
-  OOS_MSE <- mean((actual_star - predicted)^2)
-  overfit_ratio <- (OOS_MSE - IS_MSE)/IS_MSE
-  
-  PD <- predicted - fitted 
-  
-  
-  cs_data <- cbind(as.data.frame(pls_model$construct_scores),PD)
-  cstree <- rpart(
-    PD ~ ., 
-    data = cs_data, 
-    minsplit = 2, 
-    minbucket = 1, cp = 0.01
-  )
-  return(list(tree = cstree,
-         plspredict_model = plspredict_model,
-         IS_MSE = IS_MSE,
-         OOS_MSE = OOS_MSE,
-         overfit_ratio = overfit_ratio,
-         fitted_score = fitted,
-         predicted_score = predicted,
-         PD = PD))
 }
