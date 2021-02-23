@@ -1,7 +1,7 @@
 # Load SEMinR library
 library(seminr)
 library(rpart)
-source("fit_tree_library.R")
+source("lib/coa.R", chdir = TRUE)
 library(rpart.plot)
 library(rattle)
 
@@ -36,14 +36,14 @@ sec_model <- estimate_pls(data = security,
                           structural_model = security_sm)
 
 # Running COA framework
-deviance_tree <- fit_rpart_tree_seminr(pls_model=sec_model,
+deviance_sec <- fit_rpart_tree_seminr(pls_model=sec_model,
                                        focal_construct = "Y_TRUST")
 
-# Quick test code
-# source("fit_tree_library.R"); deviance_tree <- fit_rpart_tree_seminr(pls_model=sec_model, focal_construct = "Y_TRUST", cp = 0.01)
+deviants <- (deviance_sec$PD)[(deviance_sec$PD > quantile(deviance_sec$PD, probs = c(0.95))) | (deviance_tree$PD < quantile(deviance_tree$PD, probs = c(0.05)))]
+fancyRpartPlot(deviance_sec$tree, caption = NULL)
 
-deviants <- (deviance_tree$PD)[(deviance_tree$PD > quantile(deviance_tree$PD, probs = c(0.95))) | (deviance_tree$PD < quantile(deviance_tree$PD, probs = c(0.05)))]
-fancyRpartPlot(deviance_tree$tree, caption = NULL)
+leaves_sec <- deviance_sec$tree$frame[deviance_sec$tree$frame$var == "<leaf>", ]
+plot(sort(abs(leaves_sec$yval), decreasing = TRUE), pch=19)
 
 
 # Load the project data  ----
@@ -73,9 +73,30 @@ utaut_model <- estimate_pls(data = utaut_data,
                             structural_model = utaut_sm)
 
 
-deviance_tree <- fit_rpart_tree_seminr(pls_model = utaut_model,
-                                       focal_construct = "BI")
+deviance_utaut <- fit_rpart_tree_seminr(pls_model = utaut_model,
+                                       focal_construct = "BI", 
+                                       cp = 0.0000000001)
+tree <- deviance_utaut$tree
+# fancyRpartPlot(deviance_utaut$tree, caption = NULL)
 
-deviants <- (deviance_tree$PD)[(deviance_tree$PD > quantile(deviance_tree$PD, probs = c(0.95))) | (deviance_tree$PD < quantile(deviance_tree$PD, probs = c(0.05)))]
-fancyRpartPlot(deviance_tree$tree, caption = NULL)
+dev_interval <- quantile(deviance_utaut$PD, probs = c(0.025, 0.975))
+#     2.5%    97.5% 
+#   -0.0906  0.0744
 
+# All leaves
+leaves <- tree$frame[tree$frame$var == "<leaf>", ]
+leaf_ids <- row.names(leaves)
+all_paths <- leaf_paths(leaf_ids)
+plot(sort(leaves$yval, decreasing = TRUE), pch=19, col="cornflowerblue")
+abline(h=devint_utaut)
+
+# 5% most deviant node and leaves
+dev_nodes <- subset(tree$frame, yval < dev_interval["2.5%"] | yval > dev_interval["97.5%"])
+dev_leaves <- subset(dev_nodes, var == "<leaf>")
+dev_leaf_ids <- row.names(dev_leaves)
+dev_parents <- subset(dev_nodes, var != "<leaf>")
+dev_parent_ids <- row.names(dev_parents)
+
+dev_groups <- leaves_from_nodes(dev_parent_ids, all_paths)
+# TODO:
+# isolated_deviants <- which(dev_leaf_ids %in% unname(unlist(dev_groups)))
