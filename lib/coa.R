@@ -2,8 +2,22 @@ source("tree_extract.R")
 source("pls_predict.R")
 
 coa <- function(pls_model, focal_construct, ...) {
-  predictions <- prediction_metrics(pls_model, focal_construct, ...)
-  deviants <- deviance_tree(predictions)
+  pd <- prediction_metrics(pls_model, focal_construct, ...)
+  dtree <- deviance_tree(pd)
+  
+  analysis <- list(
+    pd = pd,
+    dtree = dtree
+  )
+  
+  class(analysis) <- c("coa", class(analysis))
+  analysis
+}
+
+plot.coa_deviance <- function(pd) {
+  graphics::plot(sort(pd$PD, decreasing = TRUE), pch=19, col="cornflowerblue")
+  dev_interval <- quantile(pd$PD, probs = c(0.025, 0.975))
+  abline(h=dev_interval)
 }
 
 prediction_metrics <- function(pls_model, focal_construct) {
@@ -32,7 +46,7 @@ prediction_metrics <- function(pls_model, focal_construct) {
     PD = PD,
     pd_data = pd_data
   )
-  class(predictions) <- c("coa_predictions", class(predictions))
+  class(predictions) <- c("coa_deviance", class(predictions))
   predictions
 }
 
