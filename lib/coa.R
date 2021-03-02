@@ -1,9 +1,9 @@
 source("tree_extract.R")
 source("pls_predict.R")
 
-coa <- function(pls_model, focal_construct, ...) {
+coa <- function(pls_model, focal_construct, alpha = 0.05, ...) {
   pd <- prediction_metrics(pls_model, focal_construct, ...)
-  dtree <- deviance_tree(pd)
+  dtree <- deviance_tree(pd, alpha)
   
   analysis <- list(
     pd = pd,
@@ -50,7 +50,7 @@ prediction_metrics <- function(pls_model, focal_construct) {
   predictions
 }
 
-deviance_tree <- function(predictions) {
+deviance_tree <- function(predictions, alpha) {
   # Generate Deviance Tree
   cat("Generating Deviance Tree\n")
   
@@ -62,17 +62,17 @@ deviance_tree <- function(predictions) {
   )
 
     # plot(tree)
-  # fancyRpartPlot(predictions$tree, caption = NULL)
+  fancyRpartPlot(tree, caption = NULL)
   
-  dev_interval <- quantile(predictions$PD, probs = c(0.025, 0.975))
+  dev_interval <- quantile(predictions$PD, probs = c(alpha/2, 1-(alpha/2)))
   #     2.5%    97.5% 
   #   -0.0906  0.0744
   
   # Tree frame predicates
   nodes <- row.names(tree$frame)
   is_leaf <- tree$frame$var == "<leaf>"
-  is_left_deviant <- tree$frame$yval < dev_interval["2.5%"]
-  is_right_deviant <- tree$frame$yval > dev_interval["97.5%"]
+  is_left_deviant <- tree$frame$yval < dev_interval[1]
+  is_right_deviant <- tree$frame$yval > dev_interval[2]
   is_deviant <- is_left_deviant | is_right_deviant
   is_deviant_leaf <- is_deviant & is_leaf
   is_deviant_parent <- is_deviant & !is_leaf
@@ -88,7 +88,7 @@ deviance_tree <- function(predictions) {
   # plot(sort(leaves$yval, decreasing = TRUE), pch=19, col="cornflowerblue")
   # abline(h=dev_interval)
   
-  # 5% most deviant node and leaves
+  # alpha% most deviant node and leaves
   dev_nodes <- tree$frame[is_deviant,]
   dev_parents <- tree$frame[is_deviant_parent, ]
   dev_parent_ids <- row.names(dev_parents)
