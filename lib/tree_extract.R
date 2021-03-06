@@ -35,6 +35,16 @@ cases <- function(tree, logical_frame) {
   which(tree$where %in% which(logical_frame))
 }
 
+# Given a set of node ids, returns parent ids, ignoring children
+# e.x., parent_ids: 4  40  81  12  24 119 239  31 (81, 24, 239 are children of others)
+#          returns: 4  40  12 119  31 (parents only)
+main_ancestors <- function(parent_ids) {
+  ids <- as.numeric(parent_ids)
+  possible_parents <- floor(ids / 2)
+  ancestor_ids <- ids[!(possible_parents %in% ids)]
+  as.character(ancestor_ids)
+}
+
 # OTHER UTILITIES
 #
 # Get splitting criteria of a node

@@ -60,9 +60,6 @@ deviance_tree <- function(predictions, alpha) {
     minsplit = 2,
     cp = 0.0000000001
   )
-
-    # plot(tree)
-  fancyRpartPlot(tree, caption = NULL)
   
   dev_interval <- quantile(predictions$PD, probs = c(alpha/2, 1-(alpha/2)))
   #     2.5%    97.5% 
@@ -76,32 +73,32 @@ deviance_tree <- function(predictions, alpha) {
   is_deviant <- is_left_deviant | is_right_deviant
   is_deviant_leaf <- is_deviant & is_leaf
   is_deviant_parent <- is_deviant & !is_leaf
-  
-  # Extract deviant leaves from tree frame
-  deviants <- cases(tree, is_deviant_leaf)
-  
+
   leaves <- tree$frame[is_leaf, ]
   sorted_PD <- sort(leaves$yval, decreasing = TRUE)
   class(sorted_PD) <- c("coa_sortedPD", class(sorted_PD))
   leaf_ids <- row.names(leaves)
   all_paths <- leaf_paths(leaf_ids)
-  # plot(sort(leaves$yval, decreasing = TRUE), pch=19, col="cornflowerblue")
-  # abline(h=dev_interval)
   
   # alpha% most deviant node and leaves
   dev_nodes <- tree$frame[is_deviant,]
   dev_parents <- tree$frame[is_deviant_parent, ]
   dev_parent_ids <- row.names(dev_parents)
-  dev_parent_leaves <- leaves_from_nodes(dev_parent_ids, all_paths)
+  dev_ancestor_ids <- main_ancestors(dev_parent_ids)
+  dev_parent_leaves <- leaves_from_nodes(dev_ancestor_ids, all_paths)
   
+  # Identify original cases from dataset
+  deviants <- cases(tree, is_deviant_leaf)
   deviant_groups <- lapply(dev_parent_leaves, function(group) { cases(tree, nodes %in% group) })
-  unique_deviants <- setdiff(unlist(deviant_groups), deviants)
+  grouped_deviants <- unlist(deviant_groups)
+  unique_deviants <- setdiff(deviants, grouped_deviants)
   
   deviants <- list(
     tree = tree,
     sorted_PD = sorted_PD,
     deviant_groups = deviant_groups,
-    unique_deviants = unique_deviants
+    unique_deviants = unique_deviants,
+    deviant_nodes = dev_nodes
   )
   class(deviants) <- c("coa_deviance_tree", class(deviants))
   deviants
