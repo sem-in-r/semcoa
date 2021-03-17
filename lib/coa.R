@@ -1,13 +1,17 @@
 source("tree_extract.R")
 source("pls_predict.R")
+source("unstable.R")
 
 coa <- function(pls_model, focal_construct, alpha = 0.05, ...) {
   pd <- prediction_metrics(pls_model, focal_construct, ...)
   dtree <- deviance_tree(pd, alpha)
+  unstable <- unstable_paths(pls_model, dtree)
   
   analysis <- list(
+    pls_model,
     pd = pd,
-    dtree = dtree
+    dtree = dtree,
+    unstable = unstable
   )
   
   class(analysis) <- c("coa", class(analysis))
@@ -22,7 +26,7 @@ plot.coa_deviance <- function(pd) {
 
 prediction_metrics <- function(pls_model, focal_construct) {
   # Run predict_pls
-  cat("Running PLSpredict to get predicted scores\n")
+  cat("Computing predictive deviance\n")
   
   plspredict_model <- predict_pls2(pls_model,
                                    technique = predict_DA)
@@ -102,4 +106,16 @@ deviance_tree <- function(predictions, alpha) {
   )
   class(deviants) <- c("coa_deviance_tree", class(deviants))
   deviants
+}
+
+unstable_paths <- function(pls_model, dtree) {
+  cat("Identifying Unstable Paths")
+  group_path_diffs <- lapply(dtree$deviant_groups, path_diffs, pls_model = pls_model)
+  unique_path_diffs <- lapply(dtree$unique_deviants, path_diffs, pls_model = pls_model)
+  unstable <- list(
+    group_diffs  = Map(list, group=dtree$deviant_groups, path_diffs=group_path_diffs),
+    unique_diffs = Map(list, deviants=dtree$unique_deviants, path_diffs=unique_path_diffs)
+  )
+  class(unstable) <- c(class(unstable), "unstable_paths")
+  return(unstable)
 }
