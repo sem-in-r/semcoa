@@ -1,6 +1,7 @@
 source("tree_extract.R")
 source("pls_predict.R")
 source("unstable.R")
+source("plots.R")
 
 coa <- function(pls_model, focal_construct, alpha = 0.05, ...) {
   pd <- prediction_metrics(pls_model, focal_construct, ...)
@@ -8,7 +9,9 @@ coa <- function(pls_model, focal_construct, alpha = 0.05, ...) {
   unstable <- unstable_paths(pls_model, dtree)
   
   analysis <- list(
-    pls_model,
+    pls_model = pls_model,
+    focal_construct = focal_construct,
+    alpha = alpha,
     pd = pd,
     dtree = dtree,
     unstable = unstable
@@ -16,12 +19,6 @@ coa <- function(pls_model, focal_construct, alpha = 0.05, ...) {
   
   class(analysis) <- c("coa", class(analysis))
   analysis
-}
-
-plot.coa_deviance <- function(pd) {
-  graphics::plot(sort(pd$PD, decreasing = TRUE), pch=19, col="cornflowerblue")
-  dev_interval <- quantile(pd$PD, probs = c(0.025, 0.975))
-  abline(h=dev_interval)
 }
 
 prediction_metrics <- function(pls_model, focal_construct) {
@@ -62,7 +59,7 @@ deviance_tree <- function(predictions, alpha) {
     PD ~ ., 
     data = predictions$pd_data,
     minsplit = 2,
-    cp = 0.0000000001
+    cp = 0.00000001
   )
   
   dev_interval <- quantile(predictions$PD, probs = c(alpha/2, 1-(alpha/2)))
