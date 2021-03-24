@@ -1,17 +1,22 @@
+library(seminr)
+library(rpart)
+library(rpart.plot)
+library(rattle)
+
 source("tree_extract.R")
 source("pls_predict.R")
 source("unstable.R")
 source("plots.R")
 
-coa <- function(pls_model, focal_construct, alpha = 0.05, ...) {
+coa <- function(pls_model, focal_construct, deviance_bounds = c(0.025, 0.975), ...) {
   pd <- prediction_metrics(pls_model, focal_construct, ...)
-  dtree <- deviance_tree(pd, alpha)
+  dtree <- deviance_tree(pd, deviance_bounds)
   unstable <- unstable_paths(pls_model, dtree)
   
   analysis <- list(
     pls_model = pls_model,
     focal_construct = focal_construct,
-    alpha = alpha,
+    deviance_bounds = deviance_bounds,
     pd = pd,
     dtree = dtree,
     unstable = unstable
@@ -51,7 +56,7 @@ prediction_metrics <- function(pls_model, focal_construct) {
   predictions
 }
 
-deviance_tree <- function(predictions, alpha) {
+deviance_tree <- function(predictions, deviance_bounds) {
   # Generate Deviance Tree
   cat("Generating Deviance Tree\n")
   
@@ -59,10 +64,10 @@ deviance_tree <- function(predictions, alpha) {
     PD ~ ., 
     data = predictions$pd_data,
     minsplit = 2,
-    cp = 0.00000001
+    cp = 0
   )
   
-  dev_interval <- quantile(predictions$PD, probs = c(alpha/2, 1-(alpha/2)))
+  dev_interval <- quantile(predictions$PD, probs = deviance_bounds)
   #     2.5%    97.5% 
   #   -0.0906  0.0744
   
@@ -81,7 +86,7 @@ deviance_tree <- function(predictions, alpha) {
   leaf_ids <- row.names(leaves)
   all_paths <- leaf_paths(leaf_ids)
   
-  # alpha% most deviant node and leaves
+  # Deviant node and leaves beyond accepted bounds
   dev_nodes <- tree$frame[is_deviant,]
   dev_parents <- tree$frame[is_deviant_parent, ]
   dev_parent_ids <- row.names(dev_parents)

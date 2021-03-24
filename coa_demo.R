@@ -1,9 +1,5 @@
 # Load SEMinR library
-library(seminr)
-library(rpart)
 source("lib/coa.R", chdir = TRUE)
-library(rpart.plot)
-library(rattle)
 
 ### UTAUT EXAMPLE
 
@@ -35,7 +31,7 @@ utaut_model <- estimate_pls(data = utaut_data,
 
 utaut_overfit <- coa(pls_model = utaut_model, focal_construct = "BI")
 
-
+plot_pd(utaut_overfit)
 
 ### SECURITY EXAMPLE
 
@@ -71,3 +67,5 @@ sec_model <- estimate_pls(data = security,
 
 # Running COA framework
 sec_overfit <- coa(pls_model = sec_model, focal_construct = "Y_TRUST")
+
+plot_pd(sec_overfit)
