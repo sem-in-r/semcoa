@@ -1,28 +1,41 @@
+library(seminr)
+library(rpart)
+library(rpart.plot)
+library(rattle)
+
 source("tree_extract.R")
 source("pls_predict.R")
+source("unstable.R")
+source("plots.R")
 
-coa <- function(pls_model, focal_construct, alpha = 0.05, ...) {
-  pd <- prediction_metrics(pls_model, focal_construct, ...)
-  dtree <- deviance_tree(pd, alpha)
+# COA Analysis
+# Params:
+#   pls_model - estimated seminr PLS model (seminr_model)
+#   focal_construct - name of focal construct to analyze (character string)
+#   deviance_bounds - two values of upper and lower deviance threshholds (numeric vector)
+#   ... - other optional parameters for prediction(), dtree(), or unstable() steps
+#         e.g., params for unstable()
+coa <- function(pls_model, focal_construct, deviance_bounds = c(0.025, 0.975), ...) {
+  predictions <- prediction_metrics(pls_model, focal_construct, ...)
+  dtree <- deviance_tree(predictions, deviance_bounds)
+  unstable <- unstable_params(pls_model, dtree, ...)
   
   analysis <- list(
-    pd = pd,
-    dtree = dtree
+    pls_model = pls_model,
+    focal_construct = focal_construct,
+    deviance_bounds = deviance_bounds,
+    predictions = predictions,
+    dtree = dtree,
+    unstable = unstable
   )
   
   class(analysis) <- c("coa", class(analysis))
   analysis
 }
 
-plot.coa_deviance <- function(pd) {
-  graphics::plot(sort(pd$PD, decreasing = TRUE), pch=19, col="cornflowerblue")
-  dev_interval <- quantile(pd$PD, probs = c(0.025, 0.975))
-  abline(h=dev_interval)
-}
-
-prediction_metrics <- function(pls_model, focal_construct) {
+prediction_metrics <- function(pls_model, focal_construct, ...) {
   # Run predict_pls
-  cat("Running PLSpredict to get predicted scores\n")
+  cat("Computing predictive deviance\n")
   
   plspredict_model <- predict_pls2(pls_model,
                                    technique = predict_DA)
@@ -50,7 +63,7 @@ prediction_metrics <- function(pls_model, focal_construct) {
   predictions
 }
 
-deviance_tree <- function(predictions, alpha) {
+deviance_tree <- function(predictions, deviance_bounds, ...) {
   # Generate Deviance Tree
   cat("Generating Deviance Tree\n")
   
@@ -58,10 +71,10 @@ deviance_tree <- function(predictions, alpha) {
     PD ~ ., 
     data = predictions$pd_data,
     minsplit = 2,
-    cp = 0.0000000001
+    cp = 0
   )
   
-  dev_interval <- quantile(predictions$PD, probs = c(alpha/2, 1-(alpha/2)))
+  dev_interval <- quantile(predictions$PD, probs = deviance_bounds)
   #     2.5%    97.5% 
   #   -0.0906  0.0744
   
@@ -80,7 +93,7 @@ deviance_tree <- function(predictions, alpha) {
   leaf_ids <- row.names(leaves)
   all_paths <- leaf_paths(leaf_ids)
   
-  # alpha% most deviant node and leaves
+  # Deviant node and leaves beyond accepted bounds
   dev_nodes <- tree$frame[is_deviant,]
   dev_parents <- tree$frame[is_deviant_parent, ]
   dev_parent_ids <- row.names(dev_parents)
@@ -102,4 +115,36 @@ deviance_tree <- function(predictions, alpha) {
   )
   class(deviants) <- c("coa_deviance_tree", class(deviants))
   deviants
+}
+
+#' Generates report of unstable parameters for a given pls_model and dtree, or a completed coa analysis
+#' params:
+#'   pls_model - an estimated seminr_model
+#'   dtree - a deviance tree object
+#'   params - parameter, or vector of parameters, to diff
+#'
+#' example: (given a seminr_model called utaut_model)
+#'   predictions <- prediction_metrics(utaut_model, "BI")
+#'   deviance_bounds = c(0.025, 0.975)
+#'   dtree <- deviance_tree(pd, deviance_bounds)
+#'   unstable <- unstable_params(
+#'     pls_model, dtree, 
+#'     params = c("path_coef", "outer_weights", "rSquared")
+#'   )
+#'   
+unstable_params <- function(pls_model=NULL, dtree=NULL, analysis=NULL, params="path_coef", ...) {
+  if (!is.null(analysis)) {
+    pls_model <- analysis$pls_model
+    dtree <- analysis$dtree
+  }
+  
+  cat("Identifying Unstable Paths")
+  group_param_diffs <- lapply(dtree$deviant_groups, param_diffs, pls_model = pls_model, params=params)
+  unique_param_diffs <- lapply(dtree$unique_deviants, param_diffs, pls_model = pls_model, params=params)
+  unstable <- list(
+    group_diffs  = Map(list, group=dtree$deviant_groups, param_diffs=group_param_diffs),
+    unique_diffs = Map(list, deviant=dtree$unique_deviants, param_diffs=unique_param_diffs)
+  )
+  class(unstable) <- c(class(unstable), "unstable_paths")
+  return(unstable)
 }
