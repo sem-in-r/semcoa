@@ -5,13 +5,13 @@ plot_pd <- function(coa_analysis) {
   group_tally <- rowSums(group_tally_matrix)
   group_tally[coa_analysis$dtree$unique_deviants] <- 1 #length(coa_analysis$dtree$deviant_groups)
   # group_tally <- group_tally + 1
-  pd_groups <- data.frame(pd=coa_analysis$pd$PD, group=group_tally)
+  pd_groups <- data.frame(pd=coa_analysis$predictions$PD, group=group_tally)
   
   sorted_pd_groups <- pd_groups[order(pd_groups$pd),]
   sorted_pd_groups$order <- 1:nrow(sorted_pd_groups)
   
-  pd_min <- min(coa_analysis$pd$PD)
-  pd_max <- max(coa_analysis$pd$PD)
+  pd_min <- min(coa_analysis$predictions$PD)
+  pd_max <- max(coa_analysis$predictions$PD)
   non_deviants <- subset(sorted_pd_groups, group == 0)
   deviants <- subset(sorted_pd_groups, group != 0)
   deviants$name <- ""
@@ -20,7 +20,7 @@ plot_pd <- function(coa_analysis) {
   deviants[is_unique, ]$name <- "*"
   deviants[is_group, ]$name <- letters[deviants[is_group, ]$group - 1]
   
-  dev_quantiles <- quantile(coa_analysis$pd$PD, probs = coa_analysis$deviance_bounds)
+  dev_quantiles <- quantile(coa_analysis$predictions$PD, probs = coa_analysis$deviance_bounds)
   
   library(maptools)
   old_palette <- palette()

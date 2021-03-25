@@ -1,4 +1,4 @@
-path_diffs <- function(remove_cases, pls_model) {
+param_diffs <- function(remove_cases, pls_model, params="path_coef") {
   cat(".")
   no_dgroup_data <- pls_model$data[-remove_cases,]
   utils::capture.output(
@@ -8,5 +8,10 @@ path_diffs <- function(remove_cases, pls_model) {
       structural_model = pls_model$smMatrix
     )
   )
-  pls_model$path_coef - no_dgroup_model$path_coef
+  # pls_model[param][[1]] - no_dgroup_model[param][[1]]
+  diffs <- lapply(params, function(param) {
+    pls_model[param][[1]] - no_dgroup_model[param][[1]]
+  })
+  names(diffs) <- params
+  diffs
 }

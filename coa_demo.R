@@ -29,7 +29,9 @@ utaut_model <- estimate_pls(data = utaut_data,
                             measurement_model = utaut_mm,
                             structural_model = utaut_sm)
 
-utaut_overfit <- coa(pls_model = utaut_model, focal_construct = "BI")
+utaut_overfit <- coa(pls_model = utaut_model, 
+                     focal_construct = "BI",
+                     params = c("path_coef", "outer_weights", "rSquared"))
 
 plot_pd(utaut_overfit)
 
@@ -66,6 +68,7 @@ sec_model <- estimate_pls(data = security,
                           structural_model = security_sm)
 
 # Running COA framework
-sec_overfit <- coa(pls_model = sec_model, focal_construct = "Y_TRUST")
+sec_overfit <- coa(pls_model = sec_model, focal_construct = "Y_TRUST",
+                   params = c("path_coef", "outer_weights", "rSquared"))
 
 plot_pd(sec_overfit)
