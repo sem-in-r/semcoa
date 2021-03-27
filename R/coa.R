@@ -1,7 +1,5 @@
 library(seminr)
 library(rpart)
-library(rpart.plot)
-library(rattle)
 
 source("tree_extract.R")
 source("pls_predict.R")
@@ -63,7 +61,7 @@ prediction_metrics <- function(pls_model, focal_construct, ...) {
   predictions
 }
 
-deviance_tree <- function(predictions, deviance_bounds, ...) {
+deviance_tree <- function(predictions, deviance_bounds = c(0.025, 0.975), ...) {
   # Generate Deviance Tree
   cat("Generating Deviance Tree\n")
   
@@ -145,6 +143,7 @@ unstable_params <- function(pls_model=NULL, dtree=NULL, analysis=NULL, params="p
     group_diffs  = Map(list, group=dtree$deviant_groups, param_diffs=group_param_diffs),
     unique_diffs = Map(list, deviant=dtree$unique_deviants, param_diffs=unique_param_diffs)
   )
+  cat("\n")
   class(unstable) <- c(class(unstable), "unstable_paths")
   return(unstable)
 }
