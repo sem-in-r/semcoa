@@ -22,7 +22,8 @@ leaves_from_node <- function(node_id, node_paths) {
 # Reports which leaves belong to a list of nodes
 # parent_ids - vector of node ids (character)
 # node_paths - list of node paths (typically from leaf_paths() function)
-leaves_from_nodes <- function(parent_ids, node_paths) {
+leaves_from_nodes <- function(parent_ids, leaf_ids) {
+  node_paths <- leaf_paths(leaf_ids)
   paths_list <- lapply(parent_ids, leaves_from_node, node_paths = node_paths)
   names(paths_list) <- parent_ids
   paths_list

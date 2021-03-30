@@ -1,11 +1,8 @@
-# Load dependencies
-library(seminr)
-library(rpart)
-library(rpart.plot)
+source("R/coa.R", chdir = TRUE)
 
-source("lib/fit_tree_library.R", chdir = TRUE)
+### UTAUT EXAMPLE
 
-# Specify model
+# Load the project data  ----
 utaut_mm <- constructs(
   composite("PE", multi_items("PERF", 1:4)),
   composite("EE", c("PEOU1","PEOU3","PEOU5","PEOU6")),
@@ -25,28 +22,14 @@ utaut_sm <- relationships(
 )
 
 # Estimate model and run deviance trees
-utaut_data <- read.csv(file = "correct_utaut_data.csv")[,-66]
+utaut_data <- read.csv(file = "data/correct_utaut_data.csv")[,-66]
 
 utaut_model <- estimate_pls(data = utaut_data,
                             measurement_model = utaut_mm,
                             structural_model = utaut_sm)
 
+utaut_overfit <- coa(pls_model = utaut_model, 
+                     focal_construct = "BI",
+                     params = c("path_coef", "outer_weights", "rSquared"))
 
-deviance_tree <- fit_rpart_tree_seminr(
-  pls_model = utaut_model, focal_construct = "BI")
-
-# Tests
-
-## Fixtures:
-# saveRDS(deviance_tree$tree$where, file = "tests/fixtures/utaut-devtree-where.rds")
-# saveRDS(deviance_tree$PD, file = "tests/fixtures/utaut-pd.rds")
-
-tol <- 1e-10
-
-correct_PD <- readRDS("tests/fixtures/utaut-pd.rds")
-stopifnot(abs(correct_PD[1] - deviance_tree$PD[1]) < tol)
-
-correct_where <- readRDS("tests/fixtures/utaut-devtree-where.rds")
-stopifnot(all(correct_where == deviance_tree$tree$where))
-
-cat("\nALL TESTS PASS!\n")
+plot_pd(utaut_overfit)

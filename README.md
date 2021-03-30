@@ -6,14 +6,28 @@ Package to conduct COA framework, and report and plot results.
 
 Please install following packages:
 
-- seminr
-- rpart
-- rpart.plot
-- rattle
+- seminr    (composite model estimation)
+- rpart     (decision tree)
+- maptools  (plotting labels)
 
-## Demos
+## Testing
 
-Look at `coa_demo.R` for more examples
+Until this project becomes a full-fledged R package, run all tests using:
+
+```r
+source("tests/testthat.R")
+```
+
+Or run specific aspects of tests:
+
+```r
+test_file("tests/testthat/test-integration-coa.R")
+test_file("tests/testthat/test-unit-dtree.R")
+```
+
+## Demo
+
+Look at [demos](demos/) folder for more examples
 
 ```R
 ### UTAUT EXAMPLE
@@ -34,7 +48,9 @@ utaut_mm <- constructs(
 )
 
 utaut_sm <- relationships(
-  paths(from = c("PE","EE","SI","FC","HM","PV","HAB","Exp","Age","Gender"), to = "BI")
+  paths(from = c("PE", "EE", "SI", "FC", "HM", "PV", "HAB",
+                 "Exp","Age","Gender"),
+        to = "BI")
 )
 
 # Estimate model and run deviance trees
@@ -46,10 +62,7 @@ utaut_model <- estimate_pls(data = utaut_data,
 
 utaut_overfit <- coa(pls_model = utaut_model, 
                      focal_construct = "BI",
-                     params = c("path_coef", "outer_weights", "rSquared"))
+                     params = c("path_coef", "rSquared"))
 
 plot_pd(utaut_overfit)
 ```
-
-## Testing
-(todo)

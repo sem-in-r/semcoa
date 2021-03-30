@@ -1,7 +1,5 @@
 library(seminr)
 library(rpart)
-library(rpart.plot)
-library(rattle)
 
 source("tree_extract.R")
 source("pls_predict.R")
@@ -63,7 +61,7 @@ prediction_metrics <- function(pls_model, focal_construct, ...) {
   predictions
 }
 
-deviance_tree <- function(predictions, deviance_bounds, ...) {
+deviance_tree <- function(predictions, deviance_bounds = c(0.025, 0.975), ...) {
   # Generate Deviance Tree
   cat("Generating Deviance Tree\n")
   
@@ -91,14 +89,13 @@ deviance_tree <- function(predictions, deviance_bounds, ...) {
   sorted_PD <- sort(leaves$yval, decreasing = TRUE)
   class(sorted_PD) <- c("coa_sortedPD", class(sorted_PD))
   leaf_ids <- row.names(leaves)
-  all_paths <- leaf_paths(leaf_ids)
   
   # Deviant node and leaves beyond accepted bounds
   dev_nodes <- tree$frame[is_deviant,]
   dev_parents <- tree$frame[is_deviant_parent, ]
   dev_parent_ids <- row.names(dev_parents)
   dev_ancestor_ids <- main_ancestors(dev_parent_ids)
-  dev_parent_leaves <- leaves_from_nodes(dev_ancestor_ids, all_paths)
+  dev_parent_leaves <- leaves_from_nodes(dev_ancestor_ids, leaf_ids)
   
   # Identify original cases from dataset
   deviants <- cases(tree, is_deviant_leaf)
@@ -145,6 +142,7 @@ unstable_params <- function(pls_model=NULL, dtree=NULL, analysis=NULL, params="p
     group_diffs  = Map(list, group=dtree$deviant_groups, param_diffs=group_param_diffs),
     unique_diffs = Map(list, deviant=dtree$unique_deviants, param_diffs=unique_param_diffs)
   )
+  cat("\n")
   class(unstable) <- c(class(unstable), "unstable_paths")
   return(unstable)
 }
