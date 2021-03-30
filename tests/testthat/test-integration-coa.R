@@ -2,6 +2,9 @@
 # (only needed if called by test_dir())
 setwd("../..")
 
+# Only test this file
+# test_file("tests/testthat/test-integration-coa.R")
+
 # Specify model
 utaut_mm <- constructs(
   composite("PE", multi_items("PERF", 1:4)),
@@ -34,7 +37,7 @@ utaut_pred <- prediction_metrics(utaut_model, "BI")
 # saveRDS(utaut_pred, file = "tests/fixtures/utaut-pred.rds")
 utaut_dtree <- deviance_tree(utaut_pred, deviance_bounds = c(0.025, 0.975))
 # saveRDS(utaut_dtree, file = "tests/fixtures/utaut-dtree.rds")
-utaut_unstable <- unstable_params(utaut_model, utaut_dtree)
+utaut_unstable <- unstable_params(utaut_model, utaut_dtree, params = c("path_coef", "outer_weights", "rSquared"))
 # saveRDS(utaut_unstable, file = "tests/fixtures/utaut-unstable.rds")
 
 # utaut_overfit <- coa(pls_model = utaut_model, 
@@ -43,13 +46,33 @@ utaut_unstable <- unstable_params(utaut_model, utaut_dtree)
 
 tol <- 1e-10
 
+correct_pred     <- readRDS(file = "tests/fixtures/utaut-pred.rds")
+correct_dtree    <- readRDS(file = "tests/fixtures/utaut-dtree.rds")
+correct_unstable <- readRDS(file = "tests/fixtures/utaut-unstable.rds")
+
+test_that("COA analysis returns correct objects of right size", {
+  coa_analysis <- coa(
+    pls_model = utaut_model, 
+    focal_construct = "BI",
+    params = c("path_coef", "outer_weights", "rSquared")
+  )
+  
+  expect_equal(coa_analysis$focal_construct, "BI")
+  expect_true(all(coa_analysis$deviance_bounds == c(0.025, 0.975)))
+  expect_equal(object.size(coa_analysis$pls_model), object.size(utaut_model))
+  expect_equal(object.size(coa_analysis$predictions), object.size(correct_pred))
+  cat(paste("\n", "coa_analysis$dtree size: ", object.size(coa_analysis$dtree), "correct_dtree size: ", object.size(correct_dtree), "\n"))
+  # Note that dtree split criteria change between perturbations of predictions!
+  # WON'T PASS: expect_equal(object.size(coa_analysis$dtree), object.size(correct_dtree))
+  expect_s3_class(coa_analysis$dtree, "coa_deviance_tree")
+  expect_equal(object.size(coa_analysis$unstable), object.size(correct_unstable))
+})
+
 test_that("Prediction metrics are computed as expected", {
-  correct_pred <- readRDS(file = "tests/fixtures/utaut-pred.rds")
   expect_true(all(abs(utaut_pred$PD - correct_pred$PD) < tol))
 })
 
 test_that("Deviant groups and cases are found as expected", {
-  correct_dtree <- readRDS(file = "tests/fixtures/utaut-dtree.rds")
   dtree_compare <- mapply(
     function(u, c) {u == c},
     utaut_dtree$deviant_groups, 
@@ -61,28 +84,15 @@ test_that("Deviant groups and cases are found as expected", {
 })
 
 test_that("Unstable paths are computed correctly", {
-  correct_unstable <- readRDS(file = "tests/fixtures/utaut-unstable.rds")
-  
   group_check <- mapply(
     function(a, b) {a$param_diffs$path_coef == b$param_diffs$path_coef}, 
-    utaut_unstable$group_diffs, utaut_unstable$group_diffs
+    utaut_unstable$group_diffs, correct_unstable$group_diffs
   )
   expect_true(all(group_check))
   
   unique_check <- mapply(
     function(a, b) {a$param_diffs$path_coef == b$param_diffs$path_coef}, 
-    utaut_unstable$unique_diffs, utaut_unstable$unique_diffs
+    utaut_unstable$unique_diffs, correct_unstable$unique_diffs
   )
   expect_true(all(unique_check))
 })
-
-# 
-# tol <- 1e-10
-# 
-# correct_PD <- readRDS("tests/fixtures/utaut-pd.rds")
-# stopifnot(abs(correct_PD[1] - deviance_tree$PD[1]) < tol)
-# 
-# correct_where <- readRDS("tests/fixtures/utaut-devtree-where.rds")
-# stopifnot(all(correct_where == deviance_tree$tree$where))
-# 
-# cat("\nALL TESTS PASS!\n")

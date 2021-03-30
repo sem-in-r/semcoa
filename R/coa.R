@@ -89,14 +89,13 @@ deviance_tree <- function(predictions, deviance_bounds = c(0.025, 0.975), ...) {
   sorted_PD <- sort(leaves$yval, decreasing = TRUE)
   class(sorted_PD) <- c("coa_sortedPD", class(sorted_PD))
   leaf_ids <- row.names(leaves)
-  all_paths <- leaf_paths(leaf_ids)
   
   # Deviant node and leaves beyond accepted bounds
   dev_nodes <- tree$frame[is_deviant,]
   dev_parents <- tree$frame[is_deviant_parent, ]
   dev_parent_ids <- row.names(dev_parents)
   dev_ancestor_ids <- main_ancestors(dev_parent_ids)
-  dev_parent_leaves <- leaves_from_nodes(dev_ancestor_ids, all_paths)
+  dev_parent_leaves <- leaves_from_nodes(dev_ancestor_ids, leaf_ids)
   
   # Identify original cases from dataset
   deviants <- cases(tree, is_deviant_leaf)

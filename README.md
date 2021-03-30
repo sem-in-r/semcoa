@@ -6,17 +6,23 @@ Package to conduct COA framework, and report and plot results.
 
 Please install following packages:
 
-- seminr
-- rpart
-- rpart.plot
-- rattle
+- seminr    (composite model estimation)
+- rpart     (decision tree)
+- maptools  (plotting labels)
 
 ## Testing
 
 Until this project becomes a full-fledged R package, run all tests using:
 
-```R
+```r
 source("tests/testthat.R")
+```
+
+Or run specific aspects of tests:
+
+```r
+test_file("tests/testthat/test-integration-coa.R")
+test_file("tests/testthat/test-unit-dtree.R")
 ```
 
 ## Demo
