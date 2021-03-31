@@ -61,8 +61,8 @@ test_that("COA analysis returns correct objects of right size", {
   expect_true(all(coa_analysis$deviance_bounds == c(0.025, 0.975)))
   expect_equal(object.size(coa_analysis$pls_model), object.size(utaut_model))
   expect_equal(object.size(coa_analysis$predictions), object.size(correct_pred))
-  cat(paste("\n", "coa_analysis$dtree size: ", object.size(coa_analysis$dtree), "correct_dtree size: ", object.size(correct_dtree), "\n"))
   # Note that dtree split criteria change between perturbations of predictions!
+  # cat(paste("\n", "coa_analysis$dtree size: ", object.size(coa_analysis$dtree), "correct_dtree size: ", object.size(correct_dtree), "\n"))
   # WON'T PASS: expect_equal(object.size(coa_analysis$dtree), object.size(correct_dtree))
   expect_s3_class(coa_analysis$dtree, "coa_deviance_tree")
   expect_equal(object.size(coa_analysis$unstable), object.size(correct_unstable))

@@ -55,6 +55,41 @@ main_ancestors <- function(parent_ids) {
   as.character(ancestor_ids)
 }
 
+extract_nodes <- function(frame, dev_interval) {
+  is_leaf <- frame$var == "<leaf>"
+  is_left_deviant <- frame$yval < dev_interval[1]
+  is_right_deviant <- frame$yval > dev_interval[2]
+  is_deviant <- is_left_deviant | is_right_deviant
+  is_deviant_leaf <- is_deviant & is_leaf
+  is_deviant_parent <- is_deviant & !is_leaf
+  
+  names <- row.names(frame)
+  leaves <- frame[is_leaf, ]
+  deviants <- frame[is_deviant,]
+  dev_parents <- frame[is_deviant_parent, ]
+  
+  # Node ID numbers of deviant nodes and leaves beyond accepted bounds
+  leaf_ids <- row.names(leaves)
+  dev_parent_ids <- row.names(dev_parents)
+  dev_ancestor_ids <- main_ancestors(dev_parent_ids)
+  dev_parent_leaves <- leaves_from_nodes(dev_ancestor_ids, leaf_ids)
+  
+  list(
+    is_leaf = is_leaf,
+    is_left_deviant = is_left_deviant,
+    is_right_deviant = is_right_deviant,
+    is_deviant = is_deviant,
+    is_deviant_leaf = is_deviant_leaf,
+    is_deviant_parent = is_deviant_parent,
+    names = names,
+    leaves = leaves,
+    deviants = deviants,
+    dev_parents = dev_parents,
+    dev_ancestor_ids = dev_ancestor_ids,
+    dev_parent_leaves = dev_parent_leaves
+  )
+}
+
 # OTHER UTILITIES
 #
 # Get splitting criteria of a node

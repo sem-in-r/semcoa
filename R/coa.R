@@ -73,45 +73,32 @@ deviance_tree <- function(predictions, deviance_bounds = c(0.025, 0.975), ...) {
   )
   
   dev_interval <- quantile(predictions$PD, probs = deviance_bounds)
-  #     2.5%    97.5% 
-  #   -0.0906  0.0744
-  
-  # Tree frame predicates
-  nodes <- row.names(tree$frame)
-  is_leaf <- tree$frame$var == "<leaf>"
-  is_left_deviant <- tree$frame$yval < dev_interval[1]
-  is_right_deviant <- tree$frame$yval > dev_interval[2]
-  is_deviant <- is_left_deviant | is_right_deviant
-  is_deviant_leaf <- is_deviant & is_leaf
-  is_deviant_parent <- is_deviant & !is_leaf
 
-  leaves <- tree$frame[is_leaf, ]
-  sorted_PD <- sort(leaves$yval, decreasing = TRUE)
+  nodes <- extract_nodes(tree$frame, dev_interval)
+
+  # Sort the PD values for reporting
+  sorted_PD <- sort(nodes$leaves$yval, decreasing = TRUE)
   class(sorted_PD) <- c("coa_sortedPD", class(sorted_PD))
-  leaf_ids <- row.names(leaves)
-  
-  # Deviant node and leaves beyond accepted bounds
-  dev_nodes <- tree$frame[is_deviant,]
-  dev_parents <- tree$frame[is_deviant_parent, ]
-  dev_parent_ids <- row.names(dev_parents)
-  dev_ancestor_ids <- main_ancestors(dev_parent_ids)
-  dev_parent_leaves <- leaves_from_nodes(dev_ancestor_ids, leaf_ids)
-  
+
   # Identify original cases from dataset
-  deviants <- cases(tree, is_deviant_leaf)
-  deviant_groups <- lapply(dev_parent_leaves, function(group) { cases(tree, nodes %in% group) })
-  grouped_deviants <- unlist(deviant_groups)
-  unique_deviants <- setdiff(deviants, grouped_deviants)
+  deviants <- cases(tree, nodes$is_deviant_leaf)
+  deviant_groups <- lapply(nodes$dev_parent_leaves, function(group) { cases(tree, nodes$names %in% group) })
+  unique_deviants <- setdiff(deviants, unlist(deviant_groups))
   
-  deviants <- list(
+  utils::capture.output(
+    dev_group_rules <- path.rpart(tree, nodes$dev_ancestor_ids)
+  )
+  
+  dtree <- list(
     tree = tree,
     sorted_PD = sorted_PD,
     deviant_groups = deviant_groups,
     unique_deviants = unique_deviants,
-    deviant_nodes = dev_nodes
+    deviant_nodes = nodes$deviants,
+    dev_group_rules = dev_group_rules
   )
-  class(deviants) <- c("coa_deviance_tree", class(deviants))
-  deviants
+  class(dtree) <- c("coa_deviance_tree", class(dtree))
+  dtree
 }
 
 #' Generates report of unstable parameters for a given pls_model and dtree, or a completed coa analysis
