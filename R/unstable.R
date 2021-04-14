@@ -1,7 +1,6 @@
 param_diffs <- function(remove_cases, pls_model, params="path_coef") {
-  cat(".")
   no_dgroup_data <- pls_model$data[-remove_cases,]
-  utils::capture.output(
+  suppressMessages(
     no_dgroup_model <- estimate_pls(
       data=no_dgroup_data, 
       measurement_model = pls_model$measurement_model, 
