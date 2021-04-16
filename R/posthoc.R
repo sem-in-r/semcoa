@@ -22,7 +22,7 @@ is_leaf <- function(frame) {
 odd <- function(num) { num %% 2 == 1 }
 
 #' Reports all competing rules for a node split
-#' Example: (given UTAUT deviant group nodes: 4, 10, 12, 119, 31)
+#' Example: (given UTAUT deviant group nodes: 4, 40, 12, 119, 31)
 #'   competes(40, utaut_overfit$dtree)
 competes <- function(node_id, dtree) {
   if (node_id == 1) stop("No splits before root (node 1) of tree")
@@ -31,7 +31,7 @@ competes <- function(node_id, dtree) {
   frame <- tree$frame
   
   search_node <- ifelse(odd(node_id), node_id - 1, node_id)
-  frame_row <- match(search_node, row.names(frame))
+  frame_row <- match(search_node/2, row.names(frame))
   index <- cumsum(c(1, frame$ncompete + frame$nsurrogate + !is_leaf(frame)))
   
   start <- index[frame_row-1]

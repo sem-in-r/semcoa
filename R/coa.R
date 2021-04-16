@@ -46,7 +46,7 @@ prediction_metrics <- function(pls_model, focal_construct, ...) {
   OOS_MSE <- mean((actual_star - predicted)^2)
   overfit_ratio <- (OOS_MSE - IS_MSE)/IS_MSE
   
-  PD <- predicted - fitted 
+  PD <- fitted - predicted 
   pd_data <- cbind(as.data.frame(pls_model$construct_scores),PD)
   predictions <- list(
     plspredict_model = plspredict_model,
