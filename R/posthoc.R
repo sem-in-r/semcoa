@@ -6,13 +6,12 @@ group_scores <- function(group_id, coa) {
 }
 
 group_rules <- function(group_id, dtree) {
-  utils::capture.output(
-    rules <- unlist(unname(
-      rpart::path.rpart(dtree$tree, nodes = group_id)
-    ))
+  splits <- node_splits(55, dtree)
+  data.frame(
+    var       = splits$var, 
+    sign      = ifelse(splits$ncat > 0, ">=", "< "),
+    value     = splits$index
   )
-  
-  return(rules)
 }
 
 is_leaf <- function(frame) {
@@ -46,4 +45,27 @@ competes <- function(node_id, dtree) {
     improve   = splits$improve,
     row.names = NULL
   )
+}
+
+node_splits <- function(node_id, dtree) {
+  tree <- dtree$tree
+  frame <- tree$frame
+  index <- cumsum(c(1, frame$ncompete + frame$nsurrogate + !is_leaf(frame)))
+  all_splits <- cbind(var=rownames(tree$splits), 
+                      data.frame(tree$splits[, c("ncat", "index")], row.names=NULL))
+
+  node_path <- path_to(node_id)[-1]
+  data.frame(
+    do.call(rbind, lapply(node_path, split_criteria, all_splits=all_splits)),
+    row.names=NULL)
+}
+
+split_criteria <- function(node_id, all_splits) {
+  search_node <- ifelse(odd(node_id), node_id - 1, node_id)
+  frame_row <- match(search_node, row.names(frame))
+
+  split_row <- index[frame_row-1]
+  split <- all_splits[split_row, ]
+  if(odd(node_id)) { split$ncat <- split$ncat * -1 }
+  split
 }
