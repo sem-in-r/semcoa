@@ -1,7 +1,9 @@
-source("R/coa.R", chdir = TRUE)
+---
+title: "UTAUT model overfit analysis"
+output: html_notebook
+---
 
-### UTAUT EXAMPLE
-
+```{r}
 # Load the project data  ----
 utaut_mm <- constructs(
   composite("PE", multi_items("PERF", 1:4)),
@@ -22,17 +24,39 @@ utaut_sm <- relationships(
 )
 
 # Estimate model and run deviance trees
-utaut_data <- read.csv(file = "data/correct_utaut_data.csv")[,-66]
+utaut_data <- read.csv(file = "../data/correct_utaut_data.csv")[,-66]
 
 utaut_model <- estimate_pls(data = utaut_data,
                             measurement_model = utaut_mm,
                             structural_model = utaut_sm)
+```
 
+Composite Overfit Analysis (COA)
+```{r}
 utaut_overfit <- coa(pls_model = utaut_model, 
                      focal_construct = "BI",
                      params = c("path_coef", "outer_weights", "rSquared"))
+```
 
+Visualization of deviant groups and cases
+```{r}
 plot_pd(utaut_overfit)
-names(utaut_overfit$dtree$deviant_groups)
-# [1] "16" "72" "11" "55" "7"
+```
+Deviant Groups
+```{r}
+utaut_overfit$dtree$deviant_groups
+group_names <- names(utaut_overfit$dtree$deviant_groups)
+```
+Examining the rules that define each group
+```{r}
+rules <- lapply(group_names, group_rules, dtree=utaut_overfit$dtree)
+names(rules) <- group_names
+rules
+```
+
+Looking for competing criteria for each group's last rule. We see that group 'c' (id: 11) has many equally competitive final criteria.
+
+```{r}
+lapply(as.integer(group_names), competes, dtree=utaut_overfit$dtree)
+```
 

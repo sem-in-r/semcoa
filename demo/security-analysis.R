@@ -38,3 +38,18 @@ sec_overfit <- coa(pls_model = sec_model, focal_construct = "Y_TRUST",
                    params = c("path_coef", "outer_weights", "rSquared"))
 
 plot_pd(sec_overfit)
+sec_overfit$dtree$deviant_groups
+# $`2`
+# [1] 241 279
+# 
+# $`12`
+# [1]  49  52  57  59 138 159 183 226 317 327
+# 
+# $`26`
+# [1] 199 267
+# 
+# $`29`
+# [1]  67  69 137 207 257 270 367
+# 
+# $`15`
+# [1]  17  39  66  85 148 155 193 302 361 382 385

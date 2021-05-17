@@ -22,7 +22,7 @@ plot_pd <- function(coa_analysis) {
   
   dev_quantiles <- quantile(coa_analysis$predictions$PD, probs = coa_analysis$deviance_bounds)
   
-  library(maptools)
+  suppressMessages(library(maptools))
   old_palette <- palette()
   palette(palette.colors(palette="Classic Tableau"))
   
