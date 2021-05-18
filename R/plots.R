@@ -1,3 +1,4 @@
+#' @export
 plot_pd <- function(coa_analysis) {
   group_id <- 2:(length(coa_analysis$dtree$deviant_groups)+1)
   n <- nrow(coa_analysis$pls_model$data)

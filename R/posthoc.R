@@ -1,10 +1,12 @@
 # Posthoc analysis of groups from dtree
 # TODO: Write tests for all these functions
 
+#' @export
 group_scores <- function(group_id, coa) {
   coa$pls_model$construct_scores[unlist(coa$dtree$deviant_groups[as.character(group_id)]), ]
 }
 
+#' @export
 group_rules <- function(group_id, dtree) {
   splits <- node_splits(55, dtree)
   data.frame(
@@ -23,6 +25,8 @@ odd <- function(num) { num %% 2 == 1 }
 #' Reports all competing rules for a node split
 #' Example: (given UTAUT deviant group nodes: 4, 40, 12, 119, 31)
 #'   competes(40, utaut_overfit$dtree)
+#' 
+#' @export
 competes <- function(node_id, dtree) {
   if (node_id == 1) stop("No splits before root (node 1) of tree")
   

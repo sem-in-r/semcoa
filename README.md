@@ -54,7 +54,7 @@ utaut_sm <- relationships(
 )
 
 # Estimate model and run deviance trees
-utaut_data <- read.csv(file = "correct_utaut_data.csv")[,-66]
+utaut_data <- read.csv(file = "trello_utaut.csv")[,-66]
 
 utaut_model <- estimate_pls(data = utaut_data,
                             measurement_model = utaut_mm,
