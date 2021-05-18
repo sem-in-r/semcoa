@@ -10,7 +10,8 @@ Description: Conducts the COA framework analysis on SEM models by
     computing predictive deviance of cases, growing a deviance tree, 
     and identifying unstable paths.
 Imports:
-    seminr
+    seminr,
+    rpart
 License: GPL-3
 Depends: R (>= 3.5.0)
 Encoding: UTF-8

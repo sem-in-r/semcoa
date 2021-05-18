@@ -8,7 +8,7 @@ group_scores <- function(group_id, coa) {
 
 #' @export
 group_rules <- function(group_id, dtree) {
-  splits <- node_splits(55, dtree)
+  splits <- node_splits(group_id, dtree)
   data.frame(
     var       = splits$var, 
     sign      = ifelse(splits$ncat > 0, ">=", "< "),
@@ -52,19 +52,20 @@ competes <- function(node_id, dtree) {
 }
 
 node_splits <- function(node_id, dtree) {
-  tree <- dtree$tree
+  node_path <- path_to(node_id)[-1]
+  data.frame(
+    do.call(rbind, lapply(node_path, split_criteria, tree=dtree$tree)),
+    row.names=NULL)
+}
+
+split_criteria <- function(node_id, tree) {
+  # TODO: move frame, index, all_splits out of function so that lappy
+  #       using split_criteria doesn't recompute these every time
   frame <- tree$frame
   index <- cumsum(c(1, frame$ncompete + frame$nsurrogate + !is_leaf(frame)))
   all_splits <- cbind(var=rownames(tree$splits), 
                       data.frame(tree$splits[, c("ncat", "index")], row.names=NULL))
 
-  node_path <- path_to(node_id)[-1]
-  data.frame(
-    do.call(rbind, lapply(node_path, split_criteria, all_splits=all_splits)),
-    row.names=NULL)
-}
-
-split_criteria <- function(node_id, all_splits) {
   search_node <- ifelse(odd(node_id), node_id - 1, node_id)
   frame_row <- match(search_node, row.names(frame))
 

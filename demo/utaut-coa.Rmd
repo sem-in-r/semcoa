@@ -5,6 +5,8 @@ output: html_notebook
 
 ```{r}
 # Load the project data  ----
+library(seminr)
+
 utaut_mm <- constructs(
   composite("PE", multi_items("PERF", 1:4)),
   composite("EE", c("PEOU1","PEOU3","PEOU5","PEOU6")),
