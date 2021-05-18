@@ -26,7 +26,7 @@ security_sm <- relationships(
   paths(from = c("c_IEXP", "c_HHINC", "c_GEN", "c_AGE"),   to = c("X_SEC", "Y_TRUST"))
 )
 
-security <- read.csv(file = "data/Security4.csv")
+security <- read.csv(file = "data/security_assurance.csv")
 
 # Estimating the full model
 sec_model <- estimate_pls(data = security,

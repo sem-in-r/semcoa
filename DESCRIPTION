@@ -1,0 +1,22 @@
+Package: semcoa
+Type: Package
+Title: Composite Overfit Analysis for SEM
+Version: 0.1.0
+Authors@R: c(
+  person("Soumya", "Ray", email = "soumya.ray@gmail.com", role = c("aut", "ths", "cre")),
+  person("Nicholas Patrick", "Danks", email = "nicholasdanks@hotmail.com", role = c("aut")))
+Maintainer: Nicholas Danks <nicholasdanks@hotmail.com>
+Description: Conducts the COA framework analysis on SEM models by
+    computing predictive deviance of cases, growing a deviance tree, 
+    and identifying unstable paths.
+Imports:
+    seminr
+License: GPL-3
+Depends: R (>= 3.5.0)
+Encoding: UTF-8
+LazyData: TRUE
+Suggests: 
+    knitr,
+    testthat,
+    rmarkdown
+RoxygenNote: 7.1.1

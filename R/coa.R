@@ -1,19 +1,21 @@
 library(seminr)
 library(rpart)
 
-source("tree_extract.R")
-source("pls_predict.R")
-source("unstable.R")
-source("plots.R")
-source("posthoc.R")
+# source("tree_extract.R")
+# source("pls_predict.R")
+# source("unstable.R")
+# source("plots.R")
+# source("posthoc.R")
 
-# COA Analysis
-# Params:
-#   pls_model - estimated seminr PLS model (seminr_model)
-#   focal_construct - name of focal construct to analyze (character string)
-#   deviance_bounds - two values of upper and lower deviance threshholds (numeric vector)
-#   ... - other optional parameters for prediction(), dtree(), or unstable() steps
-#         e.g., params for unstable()
+#' COA Analysis
+#' Params:
+#'   pls_model - estimated seminr PLS model (seminr_model)
+#'   focal_construct - name of focal construct to analyze (character string)
+#'   deviance_bounds - two values of upper and lower deviance threshholds (numeric vector)
+#'   ... - other optional parameters for prediction(), dtree(), or unstable() steps
+#'         e.g., params for unstable()
+#' 
+#' @export
 coa <- function(pls_model, focal_construct, deviance_bounds = c(0.025, 0.975), ...) {
   predictions <- prediction_metrics(pls_model, focal_construct, ...)
   dtree <- deviance_tree(predictions, deviance_bounds)
@@ -32,6 +34,7 @@ coa <- function(pls_model, focal_construct, deviance_bounds = c(0.025, 0.975), .
   analysis
 }
 
+#' @export
 prediction_metrics <- function(pls_model, focal_construct, ...) {
   # Run predict_pls
   cat("Computing predictive deviance\n")
@@ -62,6 +65,7 @@ prediction_metrics <- function(pls_model, focal_construct, ...) {
   predictions
 }
 
+#' @export
 deviance_tree <- function(predictions, deviance_bounds = c(0.025, 0.975), ...) {
   # Generate Deviance Tree
   cat("Generating Deviance Tree\n")
@@ -117,6 +121,7 @@ deviance_tree <- function(predictions, deviance_bounds = c(0.025, 0.975), ...) {
 #'     params = c("path_coef", "outer_weights", "rSquared")
 #'   )
 #'   
+#' @export
 unstable_params <- function(pls_model=NULL, dtree=NULL, analysis=NULL, params="path_coef", ...) {
   if (!is.null(analysis)) {
     pls_model <- analysis$pls_model
