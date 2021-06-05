@@ -4,5 +4,6 @@
 .Rproj.user
 .Ruserdata
 _*
+cache/
 .DS*
 Meta

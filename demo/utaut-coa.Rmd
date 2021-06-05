@@ -5,7 +5,9 @@ output: html_notebook
 
 ```{r}
 # Load the project data  ----
+library(semcoa)
 library(seminr)
+library(rpart)
 
 utaut_mm <- constructs(
   composite("PE", multi_items("PERF", 1:4)),
