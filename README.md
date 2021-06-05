@@ -1,26 +1,39 @@
-# Composite Overfit Analysis
 
-Package to conduct COA framework, and report and plot results.
+<!-- README.md is generated from README.Rmd. Please edit that file -->
+
+# SEMCOA - Composite Overfit Analysis for Structural Equation Models
+
+`semcoa` is an R package to conduct the Composite Overfit Analysis (COA)
+framework for Structural Equation Models (SEM), and to then report and
+plot results.
+
+## Installation
+
+``` r
+# install.packages("devtools")
+devtools::install_github("sem-in-r/semcoa")
+```
 
 ## Required Libraries
 
 Please install following packages:
 
-- seminr    (composite model estimation)
-- rpart     (decision tree)
-- maptools  (plotting labels)
+-   seminr (composite model estimation)
+-   rpart (decision tree)
+-   maptools (plotting labels)
 
 ## Testing
 
-Until this project becomes a full-fledged R package, run all tests using:
+Until this project becomes a full-fledged R package, run all tests
+using:
 
-```r
+``` r
 source("tests/testthat.R")
 ```
 
-Or run specific aspects of tests:
+Or run specific tests:
 
-```r
+``` r
 test_file("tests/testthat/test-integration-coa.R")
 test_file("tests/testthat/test-unit-dtree.R")
 ```
@@ -29,40 +42,53 @@ test_file("tests/testthat/test-unit-dtree.R")
 
 Look at [demos](demos/) folder for more examples
 
-```R
-### UTAUT EXAMPLE
+First, setup your composite construct-based model using the seminr
+package for specifying structural equation models.
 
-# Load the project data  ----
-utaut_mm <- constructs(
-  composite("PE", multi_items("PERF", 1:4)),
-  composite("EE", c("PEOU1","PEOU3","PEOU5","PEOU6")),
-  composite("SI", c(multi_items("NORM", 1:2),"INFL3")),
-  composite("FC", multi_items("FACL", 1:4)),
-  composite("HM", multi_items("MOTIV", 1:3)),
-  composite("PV", multi_items("VALUE", 1:3)),
-  composite("HAB", multi_items("HAB", 1:4)),
-  composite("BI", multi_items("INT", 1:3)),
-  composite("Exp", single_item("Experience")),
-  composite("Age", single_item("age")),
-  composite("Gender", single_item("gender"))
-)
+    #> Generating the seminr model
+    #> All 216 observations are valid.
 
-utaut_sm <- relationships(
-  paths(from = c("PE", "EE", "SI", "FC", "HM", "PV", "HAB",
-                 "Exp","Age","Gender"),
-        to = "BI")
-)
+Now we can conduct our overfit analysis:
 
-# Estimate model and run deviance trees
-utaut_data <- read.csv(file = "trello_utaut.csv")[,-66]
-
-utaut_model <- estimate_pls(data = utaut_data,
-                            measurement_model = utaut_mm,
-                            structural_model = utaut_sm)
+``` r
+library(semcoa)
+library(rpart)
+library(maptools)
 
 utaut_overfit <- coa(pls_model = utaut_model, 
                      focal_construct = "BI",
                      params = c("path_coef", "rSquared"))
+#> Computing predictive deviance
+#> Generating Deviance Tree
+#> Identifying Unstable Paths
+```
 
+You can visualize your predictive deviant cases and groups as follows:
+
+``` r
 plot_pd(utaut_overfit)
+```
+
+<img src="man/figures/README/README-utaut-pd-plot-1.png" width="100%" style="display: block; margin: auto auto auto 0;" />
+
+And you can inspect more details about the groups by inspecting their
+node IDs and seeing the defining descriptive characteristics of groups.
+
+``` r
+# Get all the names of the groups
+names(utaut_overfit$dtree$deviant_groups)
+#> [1] "16" "72" "11" "55" "7"
+
+# Get descriptive characteristics of one of the groups
+group_rules("72", utaut_overfit$dtree)
+#> BI < -0.53
+#> -2.45 <= FC < -0.93
+#> HAB < 1.00
+#> -1.06 <= PE
+```
+
+And finally, you can examine unstable paths:
+
+``` r
+# TODO
 ```

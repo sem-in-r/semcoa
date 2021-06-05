@@ -1,12 +1,6 @@
 library(seminr)
 library(rpart)
 
-# source("tree_extract.R")
-# source("pls_predict.R")
-# source("unstable.R")
-# source("plots.R")
-# source("posthoc.R")
-
 #' COA Analysis
 #' Params:
 #'   pls_model - estimated seminr PLS model (seminr_model)
