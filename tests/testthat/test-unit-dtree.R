@@ -34,19 +34,21 @@ test_that("All leaves ultimately belonging to a node are correctly found", {
   dtree <- readRDS(file = "tests/fixtures/utaut-dtree.rds")
   leaf_ids <- row.names(subset(dtree$tree$frame, var=="<leaf>"))
   
+  leaves_of_1     <- leaves_from_nodes(parent_ids = 1, leaf_ids = leaf_ids)
   leaves_of_2     <- leaves_from_nodes(parent_ids = 2, leaf_ids = leaf_ids)
-  leaves_of_234   <- leaves_from_nodes(parent_ids = 234, leaf_ids = leaf_ids)
-  leaves_of_469   <- leaves_from_nodes(parent_ids = 469, leaf_ids = leaf_ids)
-  leaves_of_2_469 <- leaves_from_nodes(parent_ids = c(2,469), leaf_ids = leaf_ids)
+  leaves_of_3     <- leaves_from_nodes(parent_ids = 3, leaf_ids = leaf_ids)
+  leaves_of_152   <- leaves_from_nodes(parent_ids = 152, leaf_ids = leaf_ids)
+  leaves_of_2_1536 <- leaves_from_nodes(parent_ids = c(2,1536), leaf_ids = leaf_ids)
   
   # Make sure correct leaves are found
-  expect_equal(leaves_of_234[[1]], c("468", "938", "939"))
-  expect_equal(leaves_of_469[[1]], c("938", "939"))
+  expect_equal(leaves_of_152[[1]], c("304", "305"))
   
   # Make sure right number of leaves are found
-  expect_equal(length(leaves_of_2[[1]]), 73)
-  expect_equal(length(leaves_of_469[[1]]), 2)
+  expect_equal(length(leaves_of_1[[1]]), 216)
+  expect_equal(length(leaves_of_1[[1]]), length(leaf_ids))
+  expect_equal(length(leaves_of_1[[1]]), 
+               length(leaves_of_2[[1]]) + length(leaves_of_3[[1]]))
   
   # Make sure right number of leaves of multiple nodes are found
-  expect_equal(length(unlist(leaves_of_2_469)), 75)  # node 469 is not under node 2; distinct leaves
+  expect_equal(length(unlist(leaves_of_2_1536)), 152)  # node 1536 is not under node 2; distinct leaves
 })
