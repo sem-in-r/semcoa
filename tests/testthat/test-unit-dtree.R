@@ -65,7 +65,8 @@ test_that("Correct group rules are extracted", {
 })
 
 test_that("Correct node competes are extracted", {
-  group_nodes <- utaut_overfit$dtree$group_roots[group_names]
+  group_names <- names(dtree$deviant_groups)
+  group_nodes <- dtree$group_roots[group_names]
   correct_competes <- readRDS("tests/fixtures/utaut-dtree-competes-a.rds")
   compete_rules <- competes(group_nodes[['a']], dtree)
   # saveRDS(compete_rules, "tests/fixtures/utaut-dtree-competes-a.rds")

@@ -1,4 +1,35 @@
-# source("matrix.R", chdir = TRUE)
+# TODO: Replace predict functions with seminr routines
+
+#' @export
+prediction_metrics <- function(pls_model, focal_construct, ...) {
+  # Run predict_pls
+  cat("Computing predictive deviance\n")
+  
+  plspredict_model <- predict_pls2(pls_model,
+                                   technique = predict_DA)
+  
+  fitted <- plspredict_model$composites$composite_in_sample[,focal_construct]
+  predicted <- plspredict_model$composites$composite_out_of_sample[,focal_construct]
+  actual_star <- pls_model$construct_scores[,focal_construct]
+  IS_MSE <- mean((actual_star - fitted)^2)
+  OOS_MSE <- mean((actual_star - predicted)^2)
+  overfit_ratio <- (OOS_MSE - IS_MSE)/IS_MSE
+  
+  PD <- fitted - predicted 
+  pd_data <- cbind(as.data.frame(pls_model$construct_scores),PD)
+  predictions <- list(
+    plspredict_model = plspredict_model,
+    IS_MSE = IS_MSE,
+    OOS_MSE = OOS_MSE,
+    overfit_ratio = overfit_ratio,
+    fitted_score = fitted,
+    predicted_score = predicted,
+    PD = PD,
+    pd_data = pd_data
+  )
+  class(predictions) <- c("coa_deviance", class(predictions))
+  predictions
+}
 
 prediction_matrices <- function(noFolds, ordered_data, model,technique, cores) {
   out <- tryCatch(

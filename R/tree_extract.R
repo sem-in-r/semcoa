@@ -1,3 +1,51 @@
+#' @export
+deviance_tree <- function(predictions, deviance_bounds = c(0.025, 0.975), ...) {
+  # Generate Deviance Tree
+  cat("Generating Deviance Tree\n")
+  
+  tree <- rpart(
+    PD ~ ., 
+    data = predictions$pd_data,
+    minsplit = 2,
+    cp = 0
+  )
+  
+  dev_interval <- quantile(predictions$PD, probs = deviance_bounds)
+  
+  nodes <- extract_nodes(tree$frame, dev_interval)
+  
+  # Sort the PD values for reporting
+  sorted_PD <- sort(nodes$leaves$yval, decreasing = TRUE)
+  class(sorted_PD) <- c("coa_sortedPD", class(sorted_PD))
+  
+  # Identify original cases from dataset
+  deviants <- cases(tree, nodes$is_deviant_leaf)
+  
+  # Identify groups and name them alphabetically
+  deviant_groups <- lapply(nodes$dev_parent_leaves, function(group) { cases(tree, nodes$names %in% group) })
+  group_roots <- as.integer(names(deviant_groups))
+  names(group_roots) <- names(deviant_groups) <- letters[1:length(deviant_groups)]
+  
+  # Indentify unique deviants  
+  unique_deviants <- setdiff(deviants, unlist(deviant_groups))
+  
+  utils::capture.output(
+    dev_group_rules <- path.rpart(tree, nodes$dev_ancestor_ids)
+  )
+  
+  dtree <- list(
+    tree = tree,
+    sorted_PD = sorted_PD,
+    deviant_groups = deviant_groups,
+    group_roots = group_roots,
+    unique_deviants = unique_deviants,
+    deviant_nodes = nodes$deviants,
+    dev_group_rules = dev_group_rules
+  )
+  class(dtree) <- c("coa_deviance_tree", class(dtree))
+  dtree
+}
+
 # Nodes to take from root to a node
 path_to <- function(node_id) {
   if (node_id[1] != 1)
