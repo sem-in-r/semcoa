@@ -3,7 +3,7 @@
 setwd("../..")
 
 # Only test this file
-# test_file("tests/testthat/test-unit-dtree.R")
+# test_active_file("tests/testthat/test-unit-dtree.R")
 
 test_that("Unique ancestors within deviant groups are found correctly", {
   # Example with deviant group nodes one of whose immediate children is also deviants group node
@@ -51,4 +51,24 @@ test_that("All leaves ultimately belonging to a node are correctly found", {
   
   # Make sure right number of leaves of multiple nodes are found
   expect_equal(length(unlist(leaves_of_2_1536)), 152)  # node 1536 is not under node 2; distinct leaves
+})
+
+tol <- 1e-10
+dtree <- readRDS(file = "tests/fixtures/utaut-dtree.rds")
+
+test_that("Correct group rules are extracted", {
+  rules <- group_rules('a', dtree)
+  expect_equal(unname(unlist(rules$construct)), 
+               c("BI", "FC", "HAB"))
+  expect_equal(unname(unlist(rules$gte)) - c(NA, -2.4459581,  0.9988594) < tol, 
+               c(NA, TRUE, TRUE))
+})
+
+test_that("Correct node competes are extracted", {
+  group_nodes <- utaut_overfit$dtree$group_roots[group_names]
+  correct_competes <- readRDS("tests/fixtures/utaut-dtree-competes-a.rds")
+  compete_rules <- competes(group_nodes[['a']], dtree)
+  # saveRDS(compete_rules, "tests/fixtures/utaut-dtree-competes-a.rds")
+  
+  expect_equal(all(compete_rules == correct_competes), TRUE)
 })

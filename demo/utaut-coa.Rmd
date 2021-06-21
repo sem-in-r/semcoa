@@ -61,6 +61,7 @@ rules
 Looking for competing criteria for each group's last rule. We see that group 'c' (id: 11) has many equally competitive final criteria.
 
 ```{r}
-lapply(as.integer(group_names), competes, dtree=utaut_overfit$dtree)
+group_nodes <- utaut_overfit$dtree$group_roots[group_names]
+lapply(group_nodes, competes, dtree=utaut_overfit$dtree)
 ```
 

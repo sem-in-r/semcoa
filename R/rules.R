@@ -2,14 +2,14 @@
 # TODO: Write tests for all these functions
 
 #' @export
-group_scores <- function(group_id, coa) {
-  coa$pls_model$construct_scores[unlist(coa$dtree$deviant_groups[as.character(group_id)]), ]
+group_scores <- function(group_name, coa) {
+  coa$pls_model$construct_scores[unlist(coa$dtree$deviant_groups[group_name]), ]
 }
 
 #' @export
-group_rules <- function(group_id, dtree) {
-  group_node_id <- as.numeric(group_id)
-  node_path <- path_to(group_node_id)[-1]
+group_rules <- function(group_name, dtree) {
+  group_root <- dtree$group_roots[[group_name]]
+  node_path <- path_to(group_root)[-1]
   splits <- data.frame(
     do.call(rbind, lapply(node_path, split_criteria, tree=dtree$tree)),
     row.names=NULL)

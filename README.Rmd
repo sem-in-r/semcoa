@@ -35,22 +35,16 @@ Please install following packages:
 
 ## Testing
 
-Until this project becomes a full-fledged R package, run all tests using:
+Run all tests using 'Test Package' of RStudio, or run specific test files using `devtools`:
 
 ```{r eval=FALSE}
-source("tests/testthat.R")
-```
-
-Or run specific tests:
-
-```{r eval=FALSE}
-test_file("tests/testthat/test-integration-coa.R")
-test_file("tests/testthat/test-unit-dtree.R")
+test_active_file("tests/testthat/test-integration-coa.R")
+test_active_file("tests/testthat/test-unit-dtree.R")
 ```
 
 ## Demo
 
-Look at [demos](demos/) folder for more examples
+Look at [demos](demos/) folder for full examples. The following is a brief look at the code and output.
 
 First, setup your composite construct-based model using the seminr package for specifying structural equation models.
 
@@ -89,13 +83,17 @@ utaut_model <- estimate_pls(data = utaut_data,
 ```
 
 
-Now we can conduct our overfit analysis:
+Now, we can conduct our Composite Overfit Analysis (COA). We start by loading the `semcoa` library:
 
-```{r utaut-semcoa, eval=TRUE, cache=TRUE}
+```{r load-semcoa, eval=TRUE}
 library(semcoa)
 library(rpart)
 library(maptools)
+```
 
+Now we can analyze our estimated composite SEM model using COA:
+
+```{r utaut-semcoa, eval=TRUE, cache=TRUE}
 utaut_overfit <- coa(pls_model = utaut_model, 
                      focal_construct = "BI",
                      params = c("path_coef", "rSquared"))
@@ -105,18 +103,17 @@ You can visualize your predictive deviant cases and groups as follows:
 
 ```{r utaut-pd-plot, cache=TRUE, fig.height = 4, asp=0.66, fig.align = "left"}
 plot_pd(utaut_overfit)
-```
 
-And you can inspect more details about the groups by inspecting their node IDs and seeing the defining descriptive characteristics of groups.
-
-```{r utaut-coa-groups, echo=TRUE, cache=TRUE}
-# Get all the names of the groups
+# Inspect all the names of the groups
 names(utaut_overfit$dtree$deviant_groups)
-
-# Get descriptive characteristics of one of the groups
-group_rules("72", utaut_overfit$dtree)
 ```
 
+And you can inspect more details about the groups by seeing the defining descriptive characteristics of each group.
+
+```{r utaut-coa-groups, echo=TRUE}
+# Get descriptive characteristics of one of the groups
+group_rules("b", utaut_overfit$dtree)
+```
 
 And finally, you can examine unstable paths:
 

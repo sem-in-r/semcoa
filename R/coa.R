@@ -81,7 +81,13 @@ deviance_tree <- function(predictions, deviance_bounds = c(0.025, 0.975), ...) {
 
   # Identify original cases from dataset
   deviants <- cases(tree, nodes$is_deviant_leaf)
+  
+  # Identify groups and name them alphabetically
   deviant_groups <- lapply(nodes$dev_parent_leaves, function(group) { cases(tree, nodes$names %in% group) })
+  group_roots <- as.integer(names(deviant_groups))
+  names(group_roots) <- names(deviant_groups) <- letters[1:length(deviant_groups)]
+
+  # Indentify unique deviants  
   unique_deviants <- setdiff(deviants, unlist(deviant_groups))
   
   utils::capture.output(
@@ -92,6 +98,7 @@ deviance_tree <- function(predictions, deviance_bounds = c(0.025, 0.975), ...) {
     tree = tree,
     sorted_PD = sorted_PD,
     deviant_groups = deviant_groups,
+    group_roots = group_roots,
     unique_deviants = unique_deviants,
     deviant_nodes = nodes$deviants,
     dev_group_rules = dev_group_rules
