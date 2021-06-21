@@ -119,3 +119,19 @@ unstable$group_diffs$b
 #> Gender  0  0  0  0  0  0   0   0   0      0 -0.009425882
 #> BI      0  0  0  0  0  0   0   0   0      0  0.000000000
 ```
+
+## Upcoming Work
+
+### Reporting
+
+-   Create `all_groups_*` version of `group_rules` and other related
+    posthoc methods that operate on individual groups
+-   Create `summary` and `print` functions for COA object (can use
+    `all_groups_*` functions)
+-   Reposition labels on `plot_pd()`
+-   Create `group_competes` function that reports competes for all
+    rules, not just rule at group root
+
+### Refactoring
+
+-   `group_rules` subroutines can reuse data structures
