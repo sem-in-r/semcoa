@@ -37,7 +37,7 @@ test_active_file("tests/testthat/test-unit-dtree.R")
 Look at [demos](demos/) folder for full examples. The following is a
 brief look at the code and output.
 
-First, setup your composite construct-based model using the seminr
+First, let’s setup our composite construct-based model using the seminr
 package for specifying structural equation models.
 
     #> Generating the seminr model
@@ -68,7 +68,7 @@ utaut_overfit <- coa(pls_model = utaut_model,
 #> Identifying Unstable Paths
 ```
 
-You can visualize your predictive deviant cases and groups as follows:
+We can visualize our predictive deviant cases and groups as follows:
 
 ``` r
 plot_pd(utaut_overfit)
@@ -82,7 +82,7 @@ names(utaut_overfit$dtree$deviant_groups)
 #> [1] "a" "b" "c" "d" "e"
 ```
 
-And you can inspect more details about the groups by seeing the defining
+And we can inspect more details about the groups by seeing the defining
 descriptive characteristics of each group.
 
 ``` r
@@ -94,8 +94,28 @@ group_rules("b", utaut_overfit$dtree)
 #> -1.06 <= PE
 ```
 
-And finally, you can examine unstable paths:
+And finally, we can examine unstable paths of any of our groups.
 
 ``` r
-# TODO
+unstable <- unstable_params(analysis = utaut_overfit)
+#> Identifying Unstable Paths
+
+unstable$group_diffs$b
+#> $group
+#> [1] 12 71 99
+#> 
+#> $param_diffs
+#> $param_diffs$path_coef
+#>        PE EE SI FC HM PV HAB Exp Age Gender           BI
+#> PE      0  0  0  0  0  0   0   0   0      0 -0.018426546
+#> EE      0  0  0  0  0  0   0   0   0      0 -0.005368748
+#> SI      0  0  0  0  0  0   0   0   0      0  0.004796548
+#> FC      0  0  0  0  0  0   0   0   0      0  0.032766535
+#> HM      0  0  0  0  0  0   0   0   0      0 -0.022661261
+#> PV      0  0  0  0  0  0   0   0   0      0  0.033025676
+#> HAB     0  0  0  0  0  0   0   0   0      0  0.004836042
+#> Exp     0  0  0  0  0  0   0   0   0      0 -0.001911413
+#> Age     0  0  0  0  0  0   0   0   0      0  0.010783469
+#> Gender  0  0  0  0  0  0   0   0   0      0 -0.009425882
+#> BI      0  0  0  0  0  0   0   0   0      0  0.000000000
 ```

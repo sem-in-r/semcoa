@@ -46,7 +46,7 @@ test_active_file("tests/testthat/test-unit-dtree.R")
 
 Look at [demos](demos/) folder for full examples. The following is a brief look at the code and output.
 
-First, setup your composite construct-based model using the seminr package for specifying structural equation models.
+First, let's setup our composite construct-based model using the seminr package for specifying structural equation models.
 
 ```{r utaut-seminr, eval=TRUE, echo=FALSE, cache=TRUE}
 library(seminr)
@@ -99,7 +99,7 @@ utaut_overfit <- coa(pls_model = utaut_model,
                      params = c("path_coef", "rSquared"))
 ```
 
-You can visualize your predictive deviant cases and groups as follows:
+We can visualize our predictive deviant cases and groups as follows:
 
 ```{r utaut-pd-plot, cache=TRUE, fig.height = 4, asp=0.66, fig.align = "left"}
 plot_pd(utaut_overfit)
@@ -108,15 +108,17 @@ plot_pd(utaut_overfit)
 names(utaut_overfit$dtree$deviant_groups)
 ```
 
-And you can inspect more details about the groups by seeing the defining descriptive characteristics of each group.
+And we can inspect more details about the groups by seeing the defining descriptive characteristics of each group.
 
 ```{r utaut-coa-groups, echo=TRUE}
 # Get descriptive characteristics of one of the groups
 group_rules("b", utaut_overfit$dtree)
 ```
 
-And finally, you can examine unstable paths:
+And finally, we can examine unstable paths of any of our groups.
 
 ```{r utaut-coa-unstable, echo=TRUE, cache=TRUE}
-# TODO
+unstable <- unstable_params(analysis = utaut_overfit)
+
+unstable$group_diffs$b
 ```
