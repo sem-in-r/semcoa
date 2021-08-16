@@ -24,7 +24,7 @@ deviance_tree <- function(predictions, deviance_bounds = c(0.025, 0.975), ...) {
   # Identify groups and name them alphabetically
   deviant_groups <- lapply(nodes$dev_parent_leaves, function(group) { cases(tree, nodes$names %in% group) })
   group_roots <- as.integer(names(deviant_groups))
-  names(group_roots) <- names(deviant_groups) <- letters[1:length(deviant_groups)]
+  names(group_roots) <- names(deviant_groups) <- LETTERS[1:length(deviant_groups)]
   
   # Indentify unique deviants  
   unique_deviants <- setdiff(deviants, unlist(deviant_groups))
@@ -42,7 +42,7 @@ deviance_tree <- function(predictions, deviance_bounds = c(0.025, 0.975), ...) {
     deviant_nodes = nodes$deviants,
     dev_group_rules = dev_group_rules
   )
-  class(dtree) <- c("coa_deviance_tree", class(dtree))
+  class(dtree) <- c("dtree", class(dtree))
   dtree
 }
 

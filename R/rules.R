@@ -6,6 +6,15 @@ group_scores <- function(group_name, coa) {
   coa$pls_model$construct_scores[unlist(coa$dtree$deviant_groups[group_name]), ]
 }
 
+all_groups_avg_scores <- function(coa) {
+  group_names <- names(coa$dtree$deviant_groups)
+  sapply(group_names, \(x) { 
+    group_scores(x, coa) |> 
+      colMeans() |> 
+      round(2) 
+  })
+}
+
 #' @export
 group_rules <- function(group_name, dtree) {
   group_root <- dtree$group_roots[[group_name]]

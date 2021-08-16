@@ -24,7 +24,8 @@ utaut_mm <- constructs(
 )
 
 utaut_sm <- relationships(
-  paths(from = c("PE","EE","SI","FC","HM","PV","HAB","Exp","Age","Gender"), to = "BI")
+  paths(from = c("PE","EE","SI","FC","HM","PV","HAB","Exp","Age","Gender"), 
+        to = "BI")
 )
 
 # Estimate model and run deviance trees
@@ -71,5 +72,25 @@ lapply(group_nodes, competes, dtree=utaut_overfit$dtree)
 We can now examine how the deviant groups and unique deviants affect instability of parameters:
 
 ```{r}
-unstable_params(analysis = utaut_overfit, params = c("path_coef", "rSquared"))
+unstable <- unstable_params(analysis = utaut_overfit, params = c("path_coef", "rSquared"))
+
+unstable
 ```
+
+```{r}
+trim0 <- \(x)gsub("0\\.","\\.", x)
+orig <- utaut_model$path_coef[,"BI"]
+diff <- unstable$group_diffs$E$param_diffs$path_coef[,"BI"]
+
+diff |> round(3) |> as.character() |> trim0() |> cat(sep="\n")
+((diff / orig) * 100) |> round(1) |> cat(sep = "\n")
+```
+
+```{r}
+plot_group_scores(utaut_overfit, remove = c("Exp", "Age", "Gender"))
+```
+
+```{r}
+plot(utaut_overfit$deviance_tree)
+```
+

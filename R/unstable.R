@@ -41,9 +41,9 @@ param_diffs <- function(remove_cases, pls_model, params="path_coef") {
       structural_model = pls_model$smMatrix
     )
   )
-  # pls_model[param][[1]] - no_dgroup_model[param][[1]]
+
   diffs <- lapply(params, function(param) {
-    pls_model[param][[1]] - no_dgroup_model[param][[1]]
+    no_dgroup_model[param][[1]] - pls_model[param][[1]]
   })
   names(diffs) <- params
   diffs
