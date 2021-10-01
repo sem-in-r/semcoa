@@ -1,5 +1,6 @@
-grow_deviance_tree <- function(dtree) {
+grow_deviance_tree <- function(dtree, predictions) {
   groups_path <- lapply(dtree$group_roots, semcoa:::path_to)
+  # descriptives <- group_descriptives(predictions, dtree$deviant_groups)
   
   groups_path_df <- data.frame(
     pathString = sapply(groups_path, paste, collapse="/"),
@@ -42,13 +43,20 @@ grow_deviance_tree <- function(dtree) {
   deviance_tree
 }
 
-#' @export
-plot.deviance_tree <- function(deviance_tree, ...) {
-  data.tree::SetGraphStyle(deviance_tree, splines="false", rankdir="TB", nodesep="2.0", fontname="helvetica")
-  data.tree:::plot.Node(deviance_tree, ...)
+group_descriptives <- function(predictions, groups) {
+  groups <-
+    lapply(groups, 
+           function(cases) {
+             list(cases = sapply(cases, paste, collapse=", "),
+                  y_in  = mean(predictions$fitted_score[cases]),
+                  y_out = mean(predictions$predicted_score[cases]),
+                  pd    = mean(predictions$PD[cases]))
+           })
+  class(groups) <- c("deviant_groups", class(groups))
+  groups
 }
 
-
+# desc <- group_descriptives(utaut_overfit$predictions, utaut_overfit$dtree$deviant_groups)
 
 # deviance_tree <- grow_deviance_tree(utaut_overfit$dtree)
 # plot_deviance_tree(deviance_tree)

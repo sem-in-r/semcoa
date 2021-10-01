@@ -13,7 +13,7 @@ library(rpart)
 coa <- function(pls_model, focal_construct, deviance_bounds = c(0.025, 0.975), ...) {
   predictions <- prediction_metrics(pls_model, focal_construct, ...)
   dtree <- deviance_tree(predictions, deviance_bounds)
-  deviance_tree <- grow_deviance_tree(dtree)
+  deviance_tree <- grow_deviance_tree(dtree, predictions)
   unstable <- unstable_params(pls_model, dtree, ...)
   
   analysis <- list(
