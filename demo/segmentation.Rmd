@@ -1,0 +1,96 @@
+---
+title: "UTAUT segmentation analysis"
+output: html_notebook
+---
+
+```{r}
+# Load the project data  ----
+library(semcoa)
+library(seminr)
+library(rpart)
+
+utaut_mm <- constructs(
+  composite("PE", multi_items("PERF", 1:4)),
+  composite("EE", c("PEOU1","PEOU3","PEOU5","PEOU6")),
+  composite("SI", c(multi_items("NORM", 1:2),"INFL3")),
+  composite("FC", multi_items("FACL", 1:4)),
+  composite("HM", multi_items("MOTIV", 1:3)),
+  composite("PV", multi_items("VALUE", 1:3)),
+  composite("HAB", multi_items("HAB", 1:4)),
+  composite("BI", multi_items("INT", 1:3)),
+  composite("Exp", single_item("Experience")),
+  composite("Age", single_item("age")),
+  composite("Gender", single_item("gender"))
+)
+
+utaut_sm <- relationships(
+  paths(from = c("PE","EE","SI","FC","HM","PV","HAB","Exp","Age","Gender"), 
+        to = "BI")
+)
+
+# Estimate model and run deviance trees
+utaut_data <- read.csv(file = "../data/trello_utaut.csv")[,-66]
+
+utaut_model <- estimate_pls(data = utaut_data,
+                            measurement_model = utaut_mm,
+                            structural_model = utaut_sm)
+```
+
+Composite Overfit Analysis (COA):
+  
+```{r}
+utaut_overfit <- coa(pls_model = utaut_model, 
+                     focal_construct = "BI",
+                     params = c("path_coef", "outer_weights", "rSquared"))
+```
+
+Visualization of deviant groups and cases:
+  
+  ```{r}
+plot_pd(utaut_overfit)
+```
+Deviant Groups
+```{r}
+utaut_overfit$dtree$deviant_groups
+group_names <- names(utaut_overfit$dtree$deviant_groups)
+```
+Examining the rules that define each group:
+  
+  ```{r}
+rules <- lapply(group_names, group_rules, dtree=utaut_overfit$dtree)
+names(rules) <- group_names
+rules
+```
+
+Looking for competing criteria for each group's last rule. We see that group 'c' has many equally competitive final criteria:
+
+```{r}
+group_nodes <- utaut_overfit$dtree$group_roots[group_names]
+lapply(group_nodes, competes, dtree=utaut_overfit$dtree)
+```
+
+We can now examine how the deviant groups and unique deviants affect instability of parameters:
+
+```{r}
+unstable <- unstable_params(analysis = utaut_overfit, params = c("path_coef", "rSquared"))
+
+unstable
+```
+
+```{r}
+trim0 <- \(x)gsub("0\\.","\\.", x)
+orig <- utaut_model$path_coef[,"BI"]
+diff <- unstable$group_diffs$E$param_diffs$path_coef[,"BI"]
+
+diff |> round(3) |> as.character() |> trim0() |> cat(sep="\n")
+((diff / orig) * 100) |> round(1) |> cat(sep = "\n")
+```
+
+```{r}
+plot_group_scores(utaut_overfit, remove = c("Exp", "Age", "Gender"))
+```
+
+```{r}
+plot(utaut_overfit$deviance_tree)
+```
+
