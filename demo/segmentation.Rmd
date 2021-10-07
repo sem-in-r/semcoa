@@ -3,7 +3,7 @@ title: "UTAUT segmentation analysis"
 output: html_notebook
 ---
 
-```{r}
+```{r, cache=TRUE}
 # Load the project data  ----
 library(semcoa)
 library(seminr)
@@ -38,59 +38,14 @@ utaut_model <- estimate_pls(data = utaut_data,
 
 Composite Overfit Analysis (COA):
   
-```{r}
+```{r, cache=TRUE}
 utaut_overfit <- coa(pls_model = utaut_model, 
                      focal_construct = "BI",
                      params = c("path_coef", "outer_weights", "rSquared"))
 ```
 
-Visualization of deviant groups and cases:
-  
-  ```{r}
-plot_pd(utaut_overfit)
-```
-Deviant Groups
-```{r}
-utaut_overfit$dtree$deviant_groups
-group_names <- names(utaut_overfit$dtree$deviant_groups)
-```
-Examining the rules that define each group:
-  
-  ```{r}
-rules <- lapply(group_names, group_rules, dtree=utaut_overfit$dtree)
-names(rules) <- group_names
-rules
-```
-
-Looking for competing criteria for each group's last rule. We see that group 'c' has many equally competitive final criteria:
+Finding Predictive Segments:
 
 ```{r}
-group_nodes <- utaut_overfit$dtree$group_roots[group_names]
-lapply(group_nodes, competes, dtree=utaut_overfit$dtree)
+segments <- model_segments(utaut_overfit$dtree$tree)
 ```
-
-We can now examine how the deviant groups and unique deviants affect instability of parameters:
-
-```{r}
-unstable <- unstable_params(analysis = utaut_overfit, params = c("path_coef", "rSquared"))
-
-unstable
-```
-
-```{r}
-trim0 <- \(x)gsub("0\\.","\\.", x)
-orig <- utaut_model$path_coef[,"BI"]
-diff <- unstable$group_diffs$E$param_diffs$path_coef[,"BI"]
-
-diff |> round(3) |> as.character() |> trim0() |> cat(sep="\n")
-((diff / orig) * 100) |> round(1) |> cat(sep = "\n")
-```
-
-```{r}
-plot_group_scores(utaut_overfit, remove = c("Exp", "Age", "Gender"))
-```
-
-```{r}
-plot(utaut_overfit$deviance_tree)
-```
-

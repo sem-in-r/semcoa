@@ -263,79 +263,19 @@ All 216 observations are valid.</code></pre>
                      focal_construct = &quot;BI&quot;,
                      params = c(&quot;path_coef&quot;, &quot;outer_weights&quot;, &quot;rSquared&quot;))</code></pre>
 <!-- rnb-source-end -->
+<!-- rnb-output-begin eyJkYXRhIjoiQ29tcHV0aW5nIHByZWRpY3RpdmUgZGV2aWFuY2VcbkdlbmVyYXRpbmcgRGV2aWFuY2UgVHJlZVxuSWRlbnRpZnlpbmcgVW5zdGFibGUgUGF0aHNcbiJ9 -->
+<pre><code>Computing predictive deviance
+Generating Deviance Tree
+Identifying Unstable Paths</code></pre>
+<!-- rnb-output-end -->
 <!-- rnb-chunk-end -->
 <!-- rnb-text-begin -->
-<p>Visualization of deviant groups and cases:</p>
+<p>Finding Predictive Segments:</p>
 <!-- rnb-text-end -->
 <!-- rnb-chunk-begin -->
-<pre class="r"><code>plot_pd(utaut_overfit)</code></pre>
 <!-- rnb-chunk-end -->
-<!-- rnb-text-begin -->
-<p>Deviant Groups</p>
-<!-- rnb-text-end -->
-<!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxudXRhdXRfb3ZlcmZpdCRkdHJlZSRkZXZpYW50X2dyb3Vwc1xuZ3JvdXBfbmFtZXMgPC0gbmFtZXModXRhdXRfb3ZlcmZpdCRkdHJlZSRkZXZpYW50X2dyb3VwcylcbmBgYCJ9 -->
-<pre class="r"><code>utaut_overfit$dtree$deviant_groups
-group_names &lt;- names(utaut_overfit$dtree$deviant_groups)</code></pre>
-<!-- rnb-source-end -->
-<!-- rnb-chunk-end -->
-<!-- rnb-text-begin -->
-<p>Examining the rules that define each group:</p>
-<!-- rnb-text-end -->
-<!-- rnb-chunk-begin -->
-<pre class="r"><code>rules &lt;- lapply(group_names, group_rules, dtree=utaut_overfit$dtree)
-names(rules) &lt;- group_names
-rules</code></pre>
-<!-- rnb-chunk-end -->
-<!-- rnb-text-begin -->
-<p>Looking for competing criteria for each group’s last rule. We see that group ‘c’ has many equally competitive final criteria:</p>
-<!-- rnb-text-end -->
-<!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuZ3JvdXBfbm9kZXMgPC0gdXRhdXRfb3ZlcmZpdCRkdHJlZSRncm91cF9yb290c1tncm91cF9uYW1lc11cbmxhcHBseShncm91cF9ub2RlcywgY29tcGV0ZXMsIGR0cmVlPXV0YXV0X292ZXJmaXQkZHRyZWUpXG5gYGAifQ== -->
-<pre class="r"><code>group_nodes &lt;- utaut_overfit$dtree$group_roots[group_names]
-lapply(group_nodes, competes, dtree=utaut_overfit$dtree)</code></pre>
-<!-- rnb-source-end -->
-<!-- rnb-chunk-end -->
-<!-- rnb-text-begin -->
-<p>We can now examine how the deviant groups and unique deviants affect instability of parameters:</p>
-<!-- rnb-text-end -->
-<!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxudW5zdGFibGUgPC0gdW5zdGFibGVfcGFyYW1zKGFuYWx5c2lzID0gdXRhdXRfb3ZlcmZpdCwgcGFyYW1zID0gYyhcInBhdGhfY29lZlwiLCBcInJTcXVhcmVkXCIpKVxuXG51bnN0YWJsZVxuYGBgIn0= -->
-<pre class="r"><code>unstable &lt;- unstable_params(analysis = utaut_overfit, params = c(&quot;path_coef&quot;, &quot;rSquared&quot;))
 
-unstable</code></pre>
-<!-- rnb-source-end -->
-<!-- rnb-chunk-end -->
-<!-- rnb-text-begin -->
-<!-- rnb-text-end -->
-<!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxudHJpbTAgPC0gXFwoeClnc3ViKFwiMFxcXFwuXCIsXCJcXFxcLlwiLCB4KVxub3JpZyA8LSB1dGF1dF9tb2RlbCRwYXRoX2NvZWZbLFwiQklcIl1cbmRpZmYgPC0gdW5zdGFibGUkZ3JvdXBfZGlmZnMkRSRwYXJhbV9kaWZmcyRwYXRoX2NvZWZbLFwiQklcIl1cblxuZGlmZiB8PiByb3VuZCgzKSB8PiBhcy5jaGFyYWN0ZXIoKSB8PiB0cmltMCgpIHw+IGNhdChzZXA9XCJcXG5cIilcbigoZGlmZiAvIG9yaWcpICogMTAwKSB8PiByb3VuZCgxKSB8PiBjYXQoc2VwID0gXCJcXG5cIilcbmBgYCJ9 -->
-<pre class="r"><code>trim0 &lt;- \(x)gsub(&quot;0\\.&quot;,&quot;\\.&quot;, x)
-orig &lt;- utaut_model$path_coef[,&quot;BI&quot;]
-diff &lt;- unstable$group_diffs$E$param_diffs$path_coef[,&quot;BI&quot;]
-
-diff |&gt; round(3) |&gt; as.character() |&gt; trim0() |&gt; cat(sep=&quot;\n&quot;)
-((diff / orig) * 100) |&gt; round(1) |&gt; cat(sep = &quot;\n&quot;)</code></pre>
-<!-- rnb-source-end -->
-<!-- rnb-chunk-end -->
-<!-- rnb-text-begin -->
-<!-- rnb-text-end -->
-<!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxucGxvdF9ncm91cF9zY29yZXModXRhdXRfb3ZlcmZpdCwgcmVtb3ZlID0gYyhcIkV4cFwiLCBcIkFnZVwiLCBcIkdlbmRlclwiKSlcbmBgYCJ9 -->
-<pre class="r"><code>plot_group_scores(utaut_overfit, remove = c(&quot;Exp&quot;, &quot;Age&quot;, &quot;Gender&quot;))</code></pre>
-<!-- rnb-source-end -->
-<!-- rnb-chunk-end -->
-<!-- rnb-text-begin -->
-<!-- rnb-text-end -->
-<!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxucGxvdCh1dGF1dF9vdmVyZml0JGRldmlhbmNlX3RyZWUpXG5gYGAifQ== -->
-<pre class="r"><code>plot(utaut_overfit$deviance_tree)</code></pre>
-<!-- rnb-source-end -->
-<!-- rnb-chunk-end -->
-<!-- rnb-text-begin -->
-<!-- rnb-text-end -->
-
-<div id="rmd-source-code">LS0tCnRpdGxlOiAiVVRBVVQgc2VnbWVudGF0aW9uIGFuYWx5c2lzIgpvdXRwdXQ6IGh0bWxfbm90ZWJvb2sKLS0tCgpgYGB7cn0KIyBMb2FkIHRoZSBwcm9qZWN0IGRhdGEgIC0tLS0KbGlicmFyeShzZW1jb2EpCmxpYnJhcnkoc2VtaW5yKQpsaWJyYXJ5KHJwYXJ0KQoKdXRhdXRfbW0gPC0gY29uc3RydWN0cygKICBjb21wb3NpdGUoIlBFIiwgbXVsdGlfaXRlbXMoIlBFUkYiLCAxOjQpKSwKICBjb21wb3NpdGUoIkVFIiwgYygiUEVPVTEiLCJQRU9VMyIsIlBFT1U1IiwiUEVPVTYiKSksCiAgY29tcG9zaXRlKCJTSSIsIGMobXVsdGlfaXRlbXMoIk5PUk0iLCAxOjIpLCJJTkZMMyIpKSwKICBjb21wb3NpdGUoIkZDIiwgbXVsdGlfaXRlbXMoIkZBQ0wiLCAxOjQpKSwKICBjb21wb3NpdGUoIkhNIiwgbXVsdGlfaXRlbXMoIk1PVElWIiwgMTozKSksCiAgY29tcG9zaXRlKCJQViIsIG11bHRpX2l0ZW1zKCJWQUxVRSIsIDE6MykpLAogIGNvbXBvc2l0ZSgiSEFCIiwgbXVsdGlfaXRlbXMoIkhBQiIsIDE6NCkpLAogIGNvbXBvc2l0ZSgiQkkiLCBtdWx0aV9pdGVtcygiSU5UIiwgMTozKSksCiAgY29tcG9zaXRlKCJFeHAiLCBzaW5nbGVfaXRlbSgiRXhwZXJpZW5jZSIpKSwKICBjb21wb3NpdGUoIkFnZSIsIHNpbmdsZV9pdGVtKCJhZ2UiKSksCiAgY29tcG9zaXRlKCJHZW5kZXIiLCBzaW5nbGVfaXRlbSgiZ2VuZGVyIikpCikKCnV0YXV0X3NtIDwtIHJlbGF0aW9uc2hpcHMoCiAgcGF0aHMoZnJvbSA9IGMoIlBFIiwiRUUiLCJTSSIsIkZDIiwiSE0iLCJQViIsIkhBQiIsIkV4cCIsIkFnZSIsIkdlbmRlciIpLCAKICAgICAgICB0byA9ICJCSSIpCikKCiMgRXN0aW1hdGUgbW9kZWwgYW5kIHJ1biBkZXZpYW5jZSB0cmVlcwp1dGF1dF9kYXRhIDwtIHJlYWQuY3N2KGZpbGUgPSAiLi4vZGF0YS90cmVsbG9fdXRhdXQuY3N2IilbLC02Nl0KCnV0YXV0X21vZGVsIDwtIGVzdGltYXRlX3BscyhkYXRhID0gdXRhdXRfZGF0YSwKICAgICAgICAgICAgICAgICAgICAgICAgICAgIG1lYXN1cmVtZW50X21vZGVsID0gdXRhdXRfbW0sCiAgICAgICAgICAgICAgICAgICAgICAgICAgICBzdHJ1Y3R1cmFsX21vZGVsID0gdXRhdXRfc20pCmBgYAoKQ29tcG9zaXRlIE92ZXJmaXQgQW5hbHlzaXMgKENPQSk6CiAgCmBgYHtyfQp1dGF1dF9vdmVyZml0IDwtIGNvYShwbHNfbW9kZWwgPSB1dGF1dF9tb2RlbCwgCiAgICAgICAgICAgICAgICAgICAgIGZvY2FsX2NvbnN0cnVjdCA9ICJCSSIsCiAgICAgICAgICAgICAgICAgICAgIHBhcmFtcyA9IGMoInBhdGhfY29lZiIsICJvdXRlcl93ZWlnaHRzIiwgInJTcXVhcmVkIikpCmBgYAoKVmlzdWFsaXphdGlvbiBvZiBkZXZpYW50IGdyb3VwcyBhbmQgY2FzZXM6CiAgCiAgYGBge3J9CnBsb3RfcGQodXRhdXRfb3ZlcmZpdCkKYGBgCkRldmlhbnQgR3JvdXBzCmBgYHtyfQp1dGF1dF9vdmVyZml0JGR0cmVlJGRldmlhbnRfZ3JvdXBzCmdyb3VwX25hbWVzIDwtIG5hbWVzKHV0YXV0X292ZXJmaXQkZHRyZWUkZGV2aWFudF9ncm91cHMpCmBgYApFeGFtaW5pbmcgdGhlIHJ1bGVzIHRoYXQgZGVmaW5lIGVhY2ggZ3JvdXA6CiAgCiAgYGBge3J9CnJ1bGVzIDwtIGxhcHBseShncm91cF9uYW1lcywgZ3JvdXBfcnVsZXMsIGR0cmVlPXV0YXV0X292ZXJmaXQkZHRyZWUpCm5hbWVzKHJ1bGVzKSA8LSBncm91cF9uYW1lcwpydWxlcwpgYGAKCkxvb2tpbmcgZm9yIGNvbXBldGluZyBjcml0ZXJpYSBmb3IgZWFjaCBncm91cCdzIGxhc3QgcnVsZS4gV2Ugc2VlIHRoYXQgZ3JvdXAgJ2MnIGhhcyBtYW55IGVxdWFsbHkgY29tcGV0aXRpdmUgZmluYWwgY3JpdGVyaWE6CgpgYGB7cn0KZ3JvdXBfbm9kZXMgPC0gdXRhdXRfb3ZlcmZpdCRkdHJlZSRncm91cF9yb290c1tncm91cF9uYW1lc10KbGFwcGx5KGdyb3VwX25vZGVzLCBjb21wZXRlcywgZHRyZWU9dXRhdXRfb3ZlcmZpdCRkdHJlZSkKYGBgCgpXZSBjYW4gbm93IGV4YW1pbmUgaG93IHRoZSBkZXZpYW50IGdyb3VwcyBhbmQgdW5pcXVlIGRldmlhbnRzIGFmZmVjdCBpbnN0YWJpbGl0eSBvZiBwYXJhbWV0ZXJzOgoKYGBge3J9CnVuc3RhYmxlIDwtIHVuc3RhYmxlX3BhcmFtcyhhbmFseXNpcyA9IHV0YXV0X292ZXJmaXQsIHBhcmFtcyA9IGMoInBhdGhfY29lZiIsICJyU3F1YXJlZCIpKQoKdW5zdGFibGUKYGBgCgpgYGB7cn0KdHJpbTAgPC0gXCh4KWdzdWIoIjBcXC4iLCJcXC4iLCB4KQpvcmlnIDwtIHV0YXV0X21vZGVsJHBhdGhfY29lZlssIkJJIl0KZGlmZiA8LSB1bnN0YWJsZSRncm91cF9kaWZmcyRFJHBhcmFtX2RpZmZzJHBhdGhfY29lZlssIkJJIl0KCmRpZmYgfD4gcm91bmQoMykgfD4gYXMuY2hhcmFjdGVyKCkgfD4gdHJpbTAoKSB8PiBjYXQoc2VwPSJcbiIpCigoZGlmZiAvIG9yaWcpICogMTAwKSB8PiByb3VuZCgxKSB8PiBjYXQoc2VwID0gIlxuIikKYGBgCgpgYGB7cn0KcGxvdF9ncm91cF9zY29yZXModXRhdXRfb3ZlcmZpdCwgcmVtb3ZlID0gYygiRXhwIiwgIkFnZSIsICJHZW5kZXIiKSkKYGBgCgpgYGB7cn0KcGxvdCh1dGF1dF9vdmVyZml0JGRldmlhbmNlX3RyZWUpCmBgYAoK</div>
+<div id="rmd-source-code">LS0tCnRpdGxlOiAiVVRBVVQgc2VnbWVudGF0aW9uIGFuYWx5c2lzIgpvdXRwdXQ6IGh0bWxfbm90ZWJvb2sKLS0tCgpgYGB7ciwgY2FjaGU9VFJVRX0KIyBMb2FkIHRoZSBwcm9qZWN0IGRhdGEgIC0tLS0KbGlicmFyeShzZW1jb2EpCmxpYnJhcnkoc2VtaW5yKQpsaWJyYXJ5KHJwYXJ0KQoKdXRhdXRfbW0gPC0gY29uc3RydWN0cygKICBjb21wb3NpdGUoIlBFIiwgbXVsdGlfaXRlbXMoIlBFUkYiLCAxOjQpKSwKICBjb21wb3NpdGUoIkVFIiwgYygiUEVPVTEiLCJQRU9VMyIsIlBFT1U1IiwiUEVPVTYiKSksCiAgY29tcG9zaXRlKCJTSSIsIGMobXVsdGlfaXRlbXMoIk5PUk0iLCAxOjIpLCJJTkZMMyIpKSwKICBjb21wb3NpdGUoIkZDIiwgbXVsdGlfaXRlbXMoIkZBQ0wiLCAxOjQpKSwKICBjb21wb3NpdGUoIkhNIiwgbXVsdGlfaXRlbXMoIk1PVElWIiwgMTozKSksCiAgY29tcG9zaXRlKCJQViIsIG11bHRpX2l0ZW1zKCJWQUxVRSIsIDE6MykpLAogIGNvbXBvc2l0ZSgiSEFCIiwgbXVsdGlfaXRlbXMoIkhBQiIsIDE6NCkpLAogIGNvbXBvc2l0ZSgiQkkiLCBtdWx0aV9pdGVtcygiSU5UIiwgMTozKSksCiAgY29tcG9zaXRlKCJFeHAiLCBzaW5nbGVfaXRlbSgiRXhwZXJpZW5jZSIpKSwKICBjb21wb3NpdGUoIkFnZSIsIHNpbmdsZV9pdGVtKCJhZ2UiKSksCiAgY29tcG9zaXRlKCJHZW5kZXIiLCBzaW5nbGVfaXRlbSgiZ2VuZGVyIikpCikKCnV0YXV0X3NtIDwtIHJlbGF0aW9uc2hpcHMoCiAgcGF0aHMoZnJvbSA9IGMoIlBFIiwiRUUiLCJTSSIsIkZDIiwiSE0iLCJQViIsIkhBQiIsIkV4cCIsIkFnZSIsIkdlbmRlciIpLCAKICAgICAgICB0byA9ICJCSSIpCikKCiMgRXN0aW1hdGUgbW9kZWwgYW5kIHJ1biBkZXZpYW5jZSB0cmVlcwp1dGF1dF9kYXRhIDwtIHJlYWQuY3N2KGZpbGUgPSAiLi4vZGF0YS90cmVsbG9fdXRhdXQuY3N2IilbLC02Nl0KCnV0YXV0X21vZGVsIDwtIGVzdGltYXRlX3BscyhkYXRhID0gdXRhdXRfZGF0YSwKICAgICAgICAgICAgICAgICAgICAgICAgICAgIG1lYXN1cmVtZW50X21vZGVsID0gdXRhdXRfbW0sCiAgICAgICAgICAgICAgICAgICAgICAgICAgICBzdHJ1Y3R1cmFsX21vZGVsID0gdXRhdXRfc20pCmBgYAoKQ29tcG9zaXRlIE92ZXJmaXQgQW5hbHlzaXMgKENPQSk6CiAgCmBgYHtyLCBjYWNoZT1UUlVFfQp1dGF1dF9vdmVyZml0IDwtIGNvYShwbHNfbW9kZWwgPSB1dGF1dF9tb2RlbCwgCiAgICAgICAgICAgICAgICAgICAgIGZvY2FsX2NvbnN0cnVjdCA9ICJCSSIsCiAgICAgICAgICAgICAgICAgICAgIHBhcmFtcyA9IGMoInBhdGhfY29lZiIsICJvdXRlcl93ZWlnaHRzIiwgInJTcXVhcmVkIikpCmBgYAoKRmluZGluZyBQcmVkaWN0aXZlIFNlZ21lbnRzOgoKYGBge3J9CnNlZ21lbnRzIDwtIG1vZGVsX3NlZ21lbnRzKHV0YXV0X292ZXJmaXQkZHRyZWUkdHJlZSkKYGBgCg==</div>
 
 
 
