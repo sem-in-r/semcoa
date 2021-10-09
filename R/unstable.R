@@ -33,6 +33,16 @@ unstable_params <- function(pls_model=NULL, dtree=NULL, analysis=NULL, params="p
 }
 
 param_diffs <- function(remove_cases, pls_model, params="path_coef") {
+  subset <- estimate_subset(remove_cases, pls_model, params)
+  
+  diffs <- lapply(params, function(param) {
+    subset[param][[1]] - pls_model[param][[1]]
+  })
+  names(diffs) <- params
+  diffs
+}
+
+estimate_subset <- function(remove_cases, pls_model, params="path_coef") {
   no_dgroup_data <- pls_model$data[-remove_cases,]
   suppressMessages(
     no_dgroup_model <- estimate_pls(
@@ -41,10 +51,10 @@ param_diffs <- function(remove_cases, pls_model, params="path_coef") {
       structural_model = pls_model$smMatrix
     )
   )
-
-  diffs <- lapply(params, function(param) {
-    no_dgroup_model[param][[1]] - pls_model[param][[1]]
+  
+  report_params <- lapply(params, function(param) {
+    no_dgroup_model[param][[1]]
   })
-  names(diffs) <- params
-  diffs
+  names(report_params) <- params
+  report_params
 }

@@ -47,5 +47,5 @@ utaut_overfit <- coa(pls_model = utaut_model,
 Finding Predictive Segments:
 
 ```{r}
-segments <- model_segments(utaut_overfit$dtree$tree)
+segments <- model_segments(utaut_overfit)
 ```
