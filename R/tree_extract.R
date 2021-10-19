@@ -139,7 +139,7 @@ extract_nodes <- function(frame, dev_interval) {
 }
 
 ## FOR SEGMENTATION
-cases_from_node <- function(node_id, frame, paths_to_leaves) {
+cases_from_node <- function(node_id, tree, paths_to_leaves) {
   segment_leaf_nodes <- rownames(tree$frame) %in% leaves_from_node(node_id, paths_to_leaves)
   cases(tree, segment_leaf_nodes)
 }

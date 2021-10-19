@@ -44,8 +44,42 @@ utaut_overfit <- coa(pls_model = utaut_model,
                      params = c("path_coef", "outer_weights", "rSquared"))
 ```
 
-Finding Predictive Segments:
+Finding Viable Predictive Segments:
 
 ```{r}
 segments <- model_segments(utaut_overfit)
+```
+
+Analyzing VIABILITY of Segments (can they be estimated?)
+
+```{r}
+segment_size <- sapply(segments$node_cases, length)
+segment_size[as.character(1:15)]
+```
+
+Analyzing DISCRIMINABILITY of Viable Segments:
+
+```{r}
+set.seed(37895620)
+sim_splits <- replicate(1000, semcoa:::random_split_corrs(utaut_overfit$pls_model, segments$node_cases, 1))
+```
+
+```{r}
+quantile(sim_splits["ab_corr",], probs=c(0.01, 0.05, 0.10))
+summary(sim_splits["ab_corr",])
+```
+
+```{r}
+plot(density(sim_splits["ab_corr",]), xlim=c(0,1))
+abline(v=quantile(sim_splits["ab_corr",], probs=c(0.01, 0.99)), lty="dotted")
+abline(v=semcoa:::segments_corr2('2', '3', segments$segmented_estimates), col="cornflowerblue", lwd=2)
+```
+
+
+Assess quality of model 
+```{r}
+preds <- predict_pls(model = utaut_model,
+            technique = predict_DA,
+            noFolds = 10,
+            cores = 8)
 ```
