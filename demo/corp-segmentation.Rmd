@@ -1,0 +1,147 @@
+---
+title: "UTAUT segmentation analysis"
+output: html_notebook
+---
+
+CORP MODEL estimation
+
+```{r}
+library(semcoa)
+library(seminr)
+library(rpart)
+
+# missings <- which(apply(corp_rep_data, 1, \(x) {-99 %in% x}))
+# corp_rep_data_full <- corp_rep_data[-missings,]
+# rownames(corp_rep_data_full) <- NULL
+
+corp_rep_mm <- constructs(
+  composite("COMP", multi_items("comp_", 1:3)),
+  composite("LIKE", multi_items("like_", 1:3)),
+  composite("CUSA", single_item("cusa")),
+  composite("CUSL", multi_items("cusl_", 1:3)))
+
+corp_rep_sm <- relationships(
+  paths(from = c("COMP", "LIKE"), to = c("CUSA", "CUSL")),
+  paths(from = c("CUSA"), to = c("CUSL")))
+
+corp_rep_pls_model <- estimate_pls(data = corp_rep_data,
+                                   measurement_model = corp_rep_mm,
+                                   structural_model  = corp_rep_sm)
+```
+
+Baseline prediction metrics for the full data model:
+```{r}
+corp_pred <- prediction_metrics(corp_rep_pls_model, focal_construct = "CUSL")
+```
+
+```{r}
+sqrt(mean((corp_pred$actual_star - corp_pred$predicted_score)^2))
+sqrt(corp_pred$OOS_MSE) # RMSE
+sqrt(mean((corp_pred$fitted_score - corp_pred$predicted_score)^2))
+sqrt(mean(corp_pred$PD^2)) # RMSPD
+sqrt(corp_pred$IS_MSE)
+```
+
+# Evaluating Extant Segementation Methods
+
+```{r}
+segmentation_groups <- read.csv("groups.csv")
+```
+
+## FIMIX
+```{r}
+seg_cases <- lapply(1:2, function(segment_id) {
+  which(segmentation_groups$Fimix.Allocation == segment_id)
+})
+
+fimix_seg <- lapply(seg_cases, segment_metrics, 
+                    model=corp_rep_pls_model, outcome="CUSL")
+```
+Segment specific metrics:
+```{r}
+sqrt(fimix_seg[[1]]$OOS_MSE)
+sqrt(fimix_seg[[2]]$OOS_MSE)
+sqrt(fimix_seg[[2]]$IS_MSE)
+```
+Combined metrics:
+```{r}
+fimix_actual_star <- c(fimix_seg[[1]]$actual_star, fimix_seg[[2]]$actual_star)
+fimix_fitted      <- c(fimix_seg[[1]]$fitted_score, fimix_seg[[2]]$fitted_score)
+fimix_predictions <- c(fimix_seg[[1]]$predicted_score, fimix_seg[[2]]$predicted_score)
+fimix_pd          <- c(fimix_seg[[1]]$PD, fimix_seg[[2]]$PD)
+
+# OOS MSE
+sqrt(mean((fimix_actual_star - fimix_predictions)^2))
+
+# RMSPD
+sqrt(mean((fimix_fitted - fimix_predictions)^2))
+sqrt(mean(fimix_pd^2))
+```
+
+
+## PLS-POS
+```{r}
+pos_seg_cases <- lapply(1:2, function(segment_id) {
+  which(segmentation_groups$PLS.POS.allocation == segment_id)
+})
+
+pos_seg <- lapply(pos_seg_cases, segment_metrics, 
+                  model=corp_rep_pls_model, outcome="CUSL")
+```
+Segment specific metrics:
+```{r}
+sqrt(pos_seg[[1]]$OOS_MSE)
+sqrt(pos_seg[[2]]$OOS_MSE)
+```
+Combined metrics:
+```{r}
+pos_actual_star <- c(pos_seg[[1]]$actual_star,     pos_seg[[2]]$actual_star)
+pos_fitted      <- c(pos_seg[[1]]$fitted_score,    pos_seg[[2]]$fitted_score)
+pos_predictions <- c(pos_seg[[1]]$predicted_score, pos_seg[[2]]$predicted_score)
+pos_pd          <- c(pos_seg[[1]]$PD, pos_seg[[2]]$PD)
+
+sqrt(mean((pos_actual_star - pos_predictions)^2))
+sqrt(mean((pos_fitted - pos_predictions)^2))
+sqrt(mean(pos_pd^2))
+```
+
+# PD segmentation
+
+```{r}
+pd_tree <- semcoa:::extract_dtree(corp_pred, without = "CUSL")
+
+node_cases <- semcoa:::tree_node_cases(pd_tree)
+```
+
+# Older analysis
+
+```{r}
+corp_overfit <- coa(pls_model = corp_rep_pls_model, 
+                   focal_construct = "CUSL",
+                   params = c("path_coef", "outer_weights", "rSquared"),
+                   deviance_bounds = c(0.05, 0.95))
+```
+
+```{r}
+plot_pd(corp_overfit)
+```
+
+```{r}
+plot(corp_overfit$deviance_tree)
+```
+
+
+Finding Viable Predictive Segments:
+
+```{r}
+segments <- model_segments(corp_overfit)
+```
+
+
+```{r}
+# Full dataset prediction error
+outcome_mse(corp_rep_data_full, corp_rep_pls_model, "CUSL")
+
+# look for missing values
+corp_rep_data[which(grepl(-99, corp_rep_data)),]
+```

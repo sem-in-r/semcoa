@@ -1,3 +1,18 @@
+tree_node_cases <- function(tree) {
+  frame <- tree$frame
+  names <- row.names(frame)
+  
+  is_leaf <- frame$var == "<leaf>"
+  leaves <- frame[is_leaf, ]
+  leaf_ids <- row.names(leaves)
+  paths_to_leaves <- semcoa:::leaf_paths(leaf_ids)
+  
+  parents <- frame[!is_leaf, ]
+  parent_ids <- row.names(parents)
+  
+  node_cases <- sapply(parent_ids, semcoa:::cases_from_node, tree=tree, paths_to_leaves)
+}
+
 #' Find segments from unpruned deviance tree
 #' @param coa A completed `coa` analysis
 #' @export
@@ -92,6 +107,28 @@ segments_corr2 <- function(segment_a, segment_b, segmented_estimates) {
   corr2(segmented_estimates[[segment_a]]$path_coef, segmented_estimates[[segment_b]]$path_coef)
 }
 
+segment_metrics <- function(cases, model, outcome) {
+  segment_data <- model$data[cases,]
+  rownames(segment_data) <- NULL # original rownames disrupt lookups
+  
+  measurement_model <- model$measurement_model
+  structural_model <- model$smMatrix
+  suppressMessages(
+    new_estimate <- estimate_pls(data=segment_data,
+                                 measurement_model=measurement_model, 
+                                 structural_model=structural_model)
+  )
+  
+  # TODO: ensure all model specs are being used: associations; missing values, etc.
+  
+  prediction_metrics(new_estimate, focal_construct = "CUSL")
+}
+
+# Root Mean Column MSE
+# also see a variant mcrmse: https://stats.stackexchange.com/questions/487038/what-is-mcrmse-mean-columnwise-root-mean-squared-error
+# rmcmse_cols <- function(actual, predictions) {
+#   sqrt((sum((actual - predictions)^2)) / (NROW(actual) * NCOL(actual)))
+# }
 
 # NEXT STEPS
 # - move utaut segmentation analysis to segmentation notebook

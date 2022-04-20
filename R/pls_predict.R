@@ -21,9 +21,11 @@ prediction_metrics <- function(pls_model, focal_construct, ...) {
     plspredict_model = plspredict_model,
     IS_MSE = IS_MSE,
     OOS_MSE = OOS_MSE,
+    actual_star = actual_star, # ADDED: can be used to compute metrics across segments
     overfit_ratio = overfit_ratio,
     fitted_score = fitted,
     predicted_score = predicted,
+    OOS_residual = actual_star - predicted, # ADDED: can be used to compute metrics across segments
     PD = PD,
     pd_data = pd_data
   )

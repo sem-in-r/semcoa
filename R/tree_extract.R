@@ -1,3 +1,14 @@
+# For segmentation, extract tree without DV
+extract_dtree <- function(predictions, without=NULL) {
+  pd_data <- predictions$pd_data[, !(names(predictions$pd_data) %in% without)]
+  tree <- rpart(
+    PD ~ ., 
+    data = pd_data,
+    minsplit = 2,
+    cp = 0
+  )
+}
+
 #' @export
 deviance_tree <- function(predictions, deviance_bounds = c(0.025, 0.975), ...) {
   # Generate Deviance Tree
